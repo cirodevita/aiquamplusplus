@@ -38,9 +38,20 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
     set(LIBLOG4CPLUS ${EXTERNAL_INSTALL_LOCATION}/lib/liblog4cplus.dylib)
 endif()
 
+# ONNX Runtime
+ExternalProject_Add(onnxruntime
+    URL https://github.com/microsoft/onnxruntime/releases/download/v1.18.1/onnxruntime-linux-x64-1.18.1.tgz # TODO: change version based on architecture and if use or not use GPU
+    TIMEOUT 360
+    CONFIGURE_COMMAND ""
+    BUILD_COMMAND ""
+    INSTALL_COMMAND 
+        ${CMAKE_COMMAND} -E copy_directory ${CMAKE_BINARY_DIR}/onnxruntime-prefix/src/onnxruntime/include ${EXTERNAL_INSTALL_LOCATION}/include
+        COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_BINARY_DIR}/onnxruntime-prefix/src/onnxruntime/lib ${EXTERNAL_INSTALL_LOCATION}/lib
+)
+
 add_executable(${PROJECT_NAME} main.cpp Config.cpp Config.hpp AiquamPlusPlus.cpp AiquammPlusPlus.hpp)
 
 # Explicit the dependencies
-add_dependencies(${PROJECT_NAME} log4cplus)
+add_dependencies(${PROJECT_NAME} log4cplus onnxruntime)
 
-target_link_libraries(${PROJECT_NAME} nlohmann_json::nlohmann_json ${LIBLOG4CPLUS})
+target_link_libraries(${PROJECT_NAME} pthread dl nlohmann_json::nlohmann_json ${EXTERNAL_INSTALL_LOCATION}/lib/liblog4cplus.so ${EXTERNAL_INSTALL_LOCATION}/lib/libonnxruntime.so)
