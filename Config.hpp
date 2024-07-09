@@ -24,9 +24,7 @@ public:
     ~Config();
 
     string &ConfigFile();
-
-    void Url(string url);
-    string Url();
+    vector<string> &NcInputs();
 
     void loadFromJson(const string &fileName);
 
@@ -35,8 +33,8 @@ private:
 
     std::map<std::string, int> dictionary;
     string configFile;
-
-    string url;
+    string ncBasePath;
+    vector<string> ncInputs;
 
     void setDefault();
 };

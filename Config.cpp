@@ -17,23 +17,21 @@ Config::Config(string &fileName): configFile(fileName) {
     basicConfig.configure();
     logger = log4cplus::Logger::getInstance(LOG4CPLUS_TEXT("Aiquam"));
 
-    LOG4CPLUS_INFO(logger, "Reading config file:" + fileName);
+    LOG4CPLUS_DEBUG(logger, "Reading config file:" + fileName);
 
     loadFromJson(fileName);
 }
 
 Config::~Config() {}
 
-void Config::setDefault() {
-    url = "http://193.205.230.6:8080/opendap/wcm3/d03/archive/";
-}
+void Config::setDefault() {}
 
 string &Config::ConfigFile() {
     return configFile;
 }
 
-string Config::Url() {
-    return url;
+vector<string> &Config::NcInputs() {
+    return ncInputs;
 }
 
 void Config::loadFromJson(const string &fileName) {
@@ -42,7 +40,14 @@ void Config::loadFromJson(const string &fileName) {
     std::ifstream i(fileName);
     i >> config;
 
-    if (config.contains("url")) {
-        url = config["url"];
+    if (config.contains("io")) {
+        json io=config["io"];
+        if (io.contains("base_path")) { ncBasePath = io["base_path"]; }
+        if (io.contains("nc_inputs") && io["nc_inputs"].is_array()) {
+            for (auto ncInput:io["nc_inputs"]) {
+                string file=ncInput;
+                this->ncInputs.push_back(ncBasePath+"/"+file);
+            }
+        }
     }
 }
