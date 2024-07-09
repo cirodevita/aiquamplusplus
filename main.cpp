@@ -11,7 +11,7 @@
 #include "log4cplus/layout.h"
 
 #include "Config.hpp"
-#include "AiquammPlusPlus.hpp"
+#include "AiquamPlusPlus.hpp"
 
 #include <iostream>
 #include <stdlib.h>

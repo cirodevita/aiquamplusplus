@@ -2,7 +2,7 @@
 // Created by Ciro De Vita on 29/01/24.
 //
 
-#include "AiquammPlusPlus.hpp"
+#include "AiquamPlusPlus.hpp"
 
 AiquamPlusPlus::~AiquamPlusPlus() = default;
 
@@ -11,8 +11,11 @@ AiquamPlusPlus::AiquamPlusPlus(std::shared_ptr<Config> config): config(config) {
 }
 
 void AiquamPlusPlus::run() {
+    Aiquam aiquam(config);
+
     int world_size = 1, world_rank = 0;
     size_t ncInputs = config->NcInputs().size();
+
     std::unique_ptr<float[]> timeseries;
 
 #ifdef USE_MPI
@@ -32,7 +35,6 @@ void AiquamPlusPlus::run() {
     // Define the receiving buffer
     std::unique_ptr<float[]> recvbuf;
 
-    // for (auto &ncInput : config->NcInputs()) {
     for (size_t fileIdx = 0; fileIdx < ncInputs; ++fileIdx) {
         std::string& ncInput = config->NcInputs()[fileIdx];
 
@@ -98,6 +100,7 @@ void AiquamPlusPlus::run() {
 
                 float current_conc = 0.0;
                 for (int z_idx = 0; z_idx < depth; z_idx++) {
+                    //TODO: check if is a fill value
                     current_conc += wacommAdapter->Conc()(0,z_idx,lat_idx,lon_idx);
                 }
                 sendbuf[idx]=current_conc;
@@ -133,7 +136,6 @@ void AiquamPlusPlus::run() {
 #endif
     }
 
-    // TODO: add MPI and OpenMP to apply inference
     for (int idx = 0; idx < send_counts[world_rank]; idx++) {
         int global_idx = displs[world_rank] + idx;
         std::vector<float> input_data(ncInputs);
@@ -142,78 +144,10 @@ void AiquamPlusPlus::run() {
             input_data[file_idx] = timeseries[global_idx * ncInputs + file_idx];
         }
 
-        LOG4CPLUS_INFO(logger, "Idx: " + std::to_string(input_data.size()));
+        int predicted_class = aiquam.inference(input_data);
+
+        LOG4CPLUS_DEBUG(logger, "Predicted class: " << predicted_class << std::endl);
 
         break;
     }
-
-    /*
-    std::vector<string> model_paths = {
-        "/home/hpsc-simulator/aiquamplusplus/checkpoints/AIQUAM_CNN/model.onnx",
-        "/home/hpsc-simulator/aiquamplusplus/checkpoints/AIQUAM_DLinear/model.onnx",
-        // "/home/hpsc-simulator/aiquamplusplus/checkpoints/AIQUAM_Informer/model.onnx",
-        "/home/hpsc-simulator/aiquamplusplus/checkpoints/AIQUAM_Reformer/model.onnx",
-        "/home/hpsc-simulator/aiquamplusplus/checkpoints/AIQUAM_TimesNet/model.onnx",
-        "/home/hpsc-simulator/aiquamplusplus/checkpoints/AIQUAM_Transformer/model.onnx",
-        "/home/hpsc-simulator/aiquamplusplus/checkpoints/AIQUAM_KNN/model.onnx"
-    };
-
-    Ort::Env env;
-    Ort::SessionOptions session_options;
-    session_options.SetIntraOpNumThreads(1);
-    session_options.SetGraphOptimizationLevel(GraphOptimizationLevel::ORT_ENABLE_EXTENDED);
-
-    std::vector<int64_t> predictions;
-
-    for (string& model_path : model_paths) {
-        LOG4CPLUS_INFO(logger, "Running inference with model: " + model_path);
-
-        const char* model_path_cstr = model_path.c_str();
-        Ort::Session session(env, model_path_cstr, session_options);
-
-        const char* input_name = "input";
-        const char* output_name;
-
-        std::vector<float> input_array = this->input_list;
-        std::vector<int64_t> input_shape;
-        if (model_path.find("KNN") != std::string::npos) {
-            input_shape = {1, static_cast<int64_t>(input_list.size())};
-            output_name = "output_label";
-        } else {
-            input_shape = {1, static_cast<int64_t>(input_list.size()), 1};
-            output_name = "output";
-        }
-
-        size_t input_tensor_size = input_list.size();
-        std::vector<float> input_tensor_values(input_tensor_size);
-        std::copy(input_array.begin(), input_array.end(), input_tensor_values.begin());
-
-        Ort::MemoryInfo memory_info = Ort::MemoryInfo::CreateCpu(OrtArenaAllocator, OrtMemTypeDefault);
-        Ort::Value input_tensor = Ort::Value::CreateTensor<float>(memory_info, input_tensor_values.data(), input_tensor_size, input_shape.data(), input_shape.size());
-
-        auto output_tensors = session.Run(Ort::RunOptions{nullptr}, &input_name, &input_tensor, 1, &output_name, 1);
-
-        if (model_path.find("KNN") != std::string::npos) {
-            Ort::Value& output_tensor = output_tensors.front();
-            int64_t* output_data = output_tensor.GetTensorMutableData<int64_t>();
-            predictions.push_back(output_data[0]);
-        } else {
-            float* float_array = output_tensors.front().GetTensorMutableData<float>();
-            std::vector<float> output_vector(float_array, float_array + input_tensor_size);
-            auto max_element_iter = std::max_element(output_vector.begin(), output_vector.end());
-            int64_t predicted_class = std::distance(output_vector.begin(), max_element_iter);
-            predictions.push_back(predicted_class);
-        }
-
-        std::cout << "Predicted class: " << predictions.back() << std::endl;
-    }
-
-    std::vector<int64_t> counts(4, 0);  // Supponendo 10 classi come esempio
-    for (const auto& pred : predictions) {
-        counts[pred]++;
-    }
-    int64_t final_prediction = std::max_element(counts.begin(), counts.end()) - counts.begin();
-
-    std::cout << "Final prediction (majority vote): " << final_prediction << std::endl;
-    */
 }
