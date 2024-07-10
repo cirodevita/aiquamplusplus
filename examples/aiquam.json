@@ -86,35 +86,48 @@
                 "input": "input",
                 "output": "output",
                 "input_shape": [1, 74, 1],
-                "output_type": "float"
+                "output_type": "float",
+                "output_shape": [1, 4]
+            },
+            {
+                "name": "AIQUAM_DLinear/model.onnx",
+                "input": "input",
+                "output": "output",
+                "input_shape": [1, 74, 1],
+                "output_type": "float",
+                "output_shape": [1, 4]
             },
             {
                 "name": "AIQUAM_Reformer/model.onnx",
                 "input": "input",
                 "output": "output",
                 "input_shape": [1, 74, 1],
-                "output_type": "float"
+                "output_type": "float",
+                "output_shape": [1, 4]
             },
             {
                 "name": "AIQUAM_TimesNet/model.onnx",
                 "input": "input",
                 "output": "output",
                 "input_shape": [1, 74, 1],
-                "output_type": "float"
+                "output_type": "float",
+                "output_shape": [1, 4]
             },
             {
                 "name": "AIQUAM_Transformer/model.onnx",
                 "input": "input",
                 "output": "output",
                 "input_shape": [1, 74, 1],
-                "output_type": "float"
+                "output_type": "float",
+                "output_shape": [1, 4]
             },
             {
                 "name": "AIQUAM_KNN/model.onnx",
                 "input": "input",
                 "output": "output_label",
                 "input_shape": [1, 74],
-                "output_type": "int64_t"
+                "output_type": "int64_t",
+                "output_shape": [1]
             }
         ]
     }

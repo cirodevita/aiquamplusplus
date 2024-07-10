@@ -23,6 +23,7 @@ struct config_model {
     std::string output;
     std::string output_type;
     std::vector<int64_t> input_shape;
+    std::vector<int64_t> output_shape;
 };
 
 class Config {

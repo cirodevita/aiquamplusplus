@@ -136,6 +136,7 @@ void AiquamPlusPlus::run() {
 #endif
     }
 
+    auto start_whole = std::chrono::high_resolution_clock::now();
     for (int idx = 0; idx < send_counts[world_rank]; idx++) {
         int global_idx = displs[world_rank] + idx;
         std::vector<float> input_data(ncInputs);
@@ -146,8 +147,10 @@ void AiquamPlusPlus::run() {
 
         int predicted_class = aiquam.inference(input_data);
 
-        LOG4CPLUS_DEBUG(logger, "Predicted class: " << predicted_class << std::endl);
-
-        break;
+        LOG4CPLUS_DEBUG(logger, world_rank <<": Predicted class: " << predicted_class << std::endl);
     }
+    auto end_whole = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double> elapsedLocal = end_whole - start_whole;
+
+    LOG4CPLUS_INFO(logger, world_rank << " Global Execution Time (sec): " << elapsedLocal.count());
 }

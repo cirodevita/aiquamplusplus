@@ -26,12 +26,14 @@ private:
 
     Ort::Env env;
     Ort::SessionOptions session_options;
+    std::vector<Ort::Session> sessions;
 
     std::vector<int64_t> predictions;
 
     int majority_vote();
-    template <typename T> void processOutputTensor(Ort::Value&, vector<int64_t>&, size_t);
-    void getClass(Ort::Value&, const string&, vector<int64_t>&, size_t);
+    template <typename T> void softmax(T& input);
+    template <typename T> void processOutputTensor(Ort::Session&, std::vector<float>, config_model);
+    void runInference(Ort::Session&, std::vector<float>, config_model);
 };
 
 #endif //AIQUAMPLUSPLUS_AIQUAMM_HPP

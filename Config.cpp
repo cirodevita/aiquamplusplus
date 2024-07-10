@@ -82,6 +82,11 @@ void Config::loadFromJson(const string &fileName) {
                 if (model.contains("output_type")) {
                     m.output_type = model["output_type"];
                 }
+                if (model.contains("output_shape") && model["output_shape"].is_array()) {
+                    for (auto& dim : model["output_shape"]) {
+                        m.output_shape.push_back(dim.get<int64_t>());
+                    }
+                }
                 models.push_back(m);
             }
         }
