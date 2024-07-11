@@ -11,6 +11,8 @@ AiquamPlusPlus::AiquamPlusPlus(std::shared_ptr<Config> config): config(config) {
 }
 
 void AiquamPlusPlus::run() {
+    
+    /*
     Aiquam aiquam(config);
 
     int world_size = 1, world_rank = 0;
@@ -153,4 +155,5 @@ void AiquamPlusPlus::run() {
     std::chrono::duration<double> elapsedLocal = end_whole - start_whole;
 
     LOG4CPLUS_INFO(logger, world_rank << " Global Execution Time (sec): " << elapsedLocal.count());
+    */
 }

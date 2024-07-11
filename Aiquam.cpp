@@ -40,15 +40,15 @@ int Aiquam::majority_vote() {
 
 template <typename T>
 void Aiquam::softmax(T& input) {
-  float rowmax = *std::max_element(input.begin(), input.end());
-  std::vector<float> y(input.size());
-  float sum = 0.0f;
-  for (size_t i = 0; i != input.size(); ++i) {
-    sum += y[i] = std::exp(input[i] - rowmax);
-  }
-  for (size_t i = 0; i != input.size(); ++i) {
-    input[i] = y[i] / sum;
-  }
+    float rowmax = *std::max_element(input.begin(), input.end());
+    std::vector<float> y(input.size());
+    float sum = 0.0f;
+    for (size_t i = 0; i != input.size(); ++i) {
+        sum += y[i] = std::exp(input[i] - rowmax);
+    }
+    for (size_t i = 0; i != input.size(); ++i) {
+        input[i] = y[i] / sum;
+    }
 }
 
 template <typename T>

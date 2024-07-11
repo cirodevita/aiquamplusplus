@@ -13,9 +13,9 @@
 #include "Config.hpp"
 #include "WacommAdapter.hpp"
 #include "Aiquam.hpp"
+#include "Areas.hpp"
 
 #include <string>
-#include <mutex>
 
 #ifdef USE_MPI
 #define OMPI_SKIP_MPICXX
@@ -34,7 +34,7 @@ public:
 private:
     log4cplus::Logger logger;
     std::shared_ptr<Config> config;
-    std::mutex mtx;
+    std::shared_ptr<Areas> areas;
 };
 
 #endif //AIQUAMPLUSPLUS_AIQUAMMPLUSPLUS_HPP
