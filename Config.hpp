@@ -40,6 +40,9 @@ public:
 
     void loadFromJson(const string &fileName);
 
+    string AreasFile() const;
+    void AreasFile(string value);
+
 private:
     log4cplus::Logger logger;
 
@@ -53,6 +56,8 @@ private:
     vector<struct config_model> models;
 
     config_model _data;
+
+    string areasFile;
 
     void setDefault();
 };

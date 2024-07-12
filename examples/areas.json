@@ -1,0 +1,916 @@
+{
+    "type": "FeatureCollection",
+    "name": "Banchi2023_wgs84",
+    "crs": {
+      "type": "name",
+      "properties": {
+        "name": "urn:ogc:def:crs:OGC:1.3:CRS84"
+      }
+    },
+    "bbox": [
+      13.8550000003036,
+      40.6940499999982,
+      14.4699300007322,
+      41.0571699999997
+    ],
+    "features": [
+      {
+        "type": "Feature",
+        "properties": {
+          "OBJECTID": 18,
+          "CODICE": 1500041,
+          "ASL": "ASL Napoli 3 Sud",
+          "Comune": "Castellammare di Stabia",
+          "DENOMINAZI": "Diga Foranea",
+          "COD_CLASSI": "B",
+          "SPECIE_DES": "Mitili",
+          "LONG_CENTR": 14.467,
+          "LAT_CENTR": 40.695
+        },
+        "bbox": [
+          14.464070000726672,
+          40.6940499999982,
+          14.46993000073221,
+          40.696829999998215
+        ],
+        "geometry": {
+          "type": "MultiPolygon",
+          "coordinates": [
+            [
+              [
+                [
+                  14.46993000073221,
+                  40.695499999998184
+                ],
+                [
+                  14.466680000729227,
+                  40.6940499999982
+                ],
+                [
+                  14.464070000726672,
+                  40.69537999999819
+                ],
+                [
+                  14.467330000729666,
+                  40.696829999998215
+                ],
+                [
+                  14.46993000073221,
+                  40.695499999998184
+                ]
+              ]
+            ]
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "OBJECTID": 12,
+          "CODICE": 1500032,
+          "ASL": "ASL Napoli 3 Sud",
+          "Comune": "Torre Annunziata",
+          "DENOMINAZI": "Punta Oncino",
+          "COD_CLASSI": "B",
+          "SPECIE_DES": "Mitili",
+          "LONG_CENTR": 14.427,
+          "LAT_CENTR": 40.746
+        },
+        "bbox": [
+          14.423780000686225,
+          40.74466999999846,
+          14.429893311825406,
+          40.74748558608357
+        ],
+        "geometry": {
+          "type": "MultiPolygon",
+          "coordinates": [
+            [
+              [
+                [
+                  14.429355902384707,
+                  40.745951124334944
+                ],
+                [
+                  14.423780000686225,
+                  40.74466999999846
+                ],
+                [
+                  14.424320000686613,
+                  40.74619999999845
+                ],
+                [
+                  14.429893311825406,
+                  40.74748558608357
+                ],
+                [
+                  14.429355902384707,
+                  40.745951124334944
+                ]
+              ]
+            ]
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "OBJECTID": 17,
+          "CODICE": 1500039,
+          "ASL": "ASL Napoli 3 Sud",
+          "Comune": "Torre del Greco",
+          "DENOMINAZI": "Cavaliere / Bassano",
+          "COD_CLASSI": "B",
+          "SPECIE_DES": "Mitili",
+          "LONG_CENTR": 14.37,
+          "LAT_CENTR": 40.771
+        },
+        "bbox": [
+          14.366550000634733,
+          40.7685733,
+          14.3731083,
+          40.77374999999863
+        ],
+        "geometry": {
+          "type": "MultiPolygon",
+          "coordinates": [
+            [
+              [
+                [
+                  14.3731083,
+                  40.7698
+                ],
+                [
+                  14.37139,
+                  40.7685733
+                ],
+                [
+                  14.366550000634733,
+                  40.77252999999862
+                ],
+                [
+                  14.368280000636114,
+                  40.77374999999863
+                ],
+                [
+                  14.3731083,
+                  40.7698
+                ]
+              ]
+            ]
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "OBJECTID": 3,
+          "CODICE": 1500014,
+          "ASL": "ASL Napoli2 Nord",
+          "Comune": "Bacoli",
+          "DENOMINAZI": "Punta Terone - Capo Miseno",
+          "COD_CLASSI": "A",
+          "SPECIE_DES": "Mitili",
+          "LONG_CENTR": 14.094,
+          "LAT_CENTR": 40.783
+        },
+        "bbox": [
+          14.09250000043737,
+          40.779149999999056,
+          14.096660000439636,
+          40.78693999999906
+        ],
+        "geometry": {
+          "type": "MultiPolygon",
+          "coordinates": [
+            [
+              [
+                [
+                  14.096660000439636,
+                  40.78581999999905
+                ],
+                [
+                  14.09583000043941,
+                  40.779149999999056
+                ],
+                [
+                  14.09250000043737,
+                  40.77914999999906
+                ],
+                [
+                  14.092770000437213,
+                  40.78693999999906
+                ],
+                [
+                  14.096660000439636,
+                  40.78581999999905
+                ]
+              ]
+            ]
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "OBJECTID": 16,
+          "CODICE": 1500038,
+          "ASL": "ASL Napoli2 Nord",
+          "Comune": "Monte di Procida",
+          "DENOMINAZI": "Acquamorta",
+          "COD_CLASSI": "B",
+          "SPECIE_DES": "Mitili",
+          "LONG_CENTR": 14.027,
+          "LAT_CENTR": 40.793
+        },
+        "bbox": [
+          14.0259167,
+          40.79225,
+          14.0283167,
+          40.79435
+        ],
+        "geometry": {
+          "type": "MultiPolygon",
+          "coordinates": [
+            [
+              [
+                [
+                  14.0259167,
+                  40.7943333
+                ],
+                [
+                  14.0281667,
+                  40.79435
+                ],
+                [
+                  14.0283167,
+                  40.79225
+                ],
+                [
+                  14.0259833,
+                  40.7923167
+                ],
+                [
+                  14.0259167,
+                  40.7943333
+                ]
+              ]
+            ]
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "OBJECTID": 1,
+          "CODICE": 1500012,
+          "ASL": "ASL Napoli1 Centro",
+          "Comune": "Napoli",
+          "DENOMINAZI": "Punta Cavallo, Nisida",
+          "COD_CLASSI": "B",
+          "SPECIE_DES": "Mitili",
+          "LONG_CENTR": 14.173,
+          "LAT_CENTR": 40.791
+        },
+        "bbox": [
+          14.1709,
+          40.7886,
+          14.1756,
+          40.7944
+        ],
+        "geometry": {
+          "type": "MultiPolygon",
+          "coordinates": [
+            [
+              [
+                [
+                  14.1756,
+                  40.7939
+                ],
+                [
+                  14.1743,
+                  40.7886
+                ],
+                [
+                  14.1709,
+                  40.78889
+                ],
+                [
+                  14.1728,
+                  40.7944
+                ],
+                [
+                  14.1756,
+                  40.7939
+                ]
+              ]
+            ]
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "OBJECTID": 4,
+          "CODICE": 1500015,
+          "ASL": "ASL Napoli2 Nord",
+          "Comune": "Bacoli",
+          "DENOMINAZI": "Punta del Poggio - Cento Camerelle",
+          "COD_CLASSI": "A",
+          "SPECIE_DES": "Mitili",
+          "LONG_CENTR": 14.092,
+          "LAT_CENTR": 40.795
+        },
+        "bbox": [
+          14.087220000433383,
+          40.79054999999909,
+          14.096380000439227,
+          40.79915999999911
+        ],
+        "geometry": {
+          "type": "MultiPolygon",
+          "coordinates": [
+            [
+              [
+                [
+                  14.096380000439227,
+                  40.791109999999065
+                ],
+                [
+                  14.092500000436894,
+                  40.79054999999909
+                ],
+                [
+                  14.087220000433383,
+                  40.79804999999911
+                ],
+                [
+                  14.09111000043567,
+                  40.79915999999911
+                ],
+                [
+                  14.096380000439227,
+                  40.791109999999065
+                ]
+              ]
+            ]
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "OBJECTID": 10,
+          "CODICE": 1500029,
+          "ASL": "ASL Napoli 3 Sud",
+          "Comune": "Torre del Greco",
+          "DENOMINAZI": "Calastro-Molo Foraneo",
+          "COD_CLASSI": "B",
+          "SPECIE_DES": "Mitili",
+          "LONG_CENTR": 14.352,
+          "LAT_CENTR": 40.785
+        },
+        "bbox": [
+          14.347833300000106,
+          40.78066500000012,
+          14.356150000625519,
+          40.7883333000001
+        ],
+        "geometry": {
+          "type": "MultiPolygon",
+          "coordinates": [
+            [
+              [
+                [
+                  14.356150000625519,
+                  40.7819899999987
+                ],
+                [
+                  14.3504883,
+                  40.78066500000012
+                ],
+                [
+                  14.348333300000036,
+                  40.78550000000012
+                ],
+                [
+                  14.347833300000106,
+                  40.786833300000126
+                ],
+                [
+                  14.3515,
+                  40.7878333000001
+                ],
+                [
+                  14.354313299999943,
+                  40.7883333000001
+                ],
+                [
+                  14.355016700000078,
+                  40.786635
+                ],
+                [
+                  14.355623299999989,
+                  40.7852067
+                ],
+                [
+                  14.356150000625519,
+                  40.7819899999987
+                ]
+              ]
+            ]
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "OBJECTID": 11,
+          "CODICE": 1500030,
+          "ASL": "ASL Napoli 3 Sud",
+          "Comune": "Ercolano",
+          "DENOMINAZI": "Punta Quattroventi",
+          "COD_CLASSI": "B",
+          "SPECIE_DES": "Mitili",
+          "LONG_CENTR": 14.346,
+          "LAT_CENTR": 40.788
+        },
+        "bbox": [
+          14.344670000615665,
+          40.787349999998725,
+          14.347580000618025,
+          40.78961999999873
+        ],
+        "geometry": {
+          "type": "MultiPolygon",
+          "coordinates": [
+            [
+              [
+                [
+                  14.347580000618025,
+                  40.78866999999871
+                ],
+                [
+                  14.345890000616716,
+                  40.787349999998725
+                ],
+                [
+                  14.344670000615665,
+                  40.78832999999869
+                ],
+                [
+                  14.346280000616902,
+                  40.78961999999873
+                ],
+                [
+                  14.347580000618025,
+                  40.78866999999871
+                ]
+              ]
+            ]
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "OBJECTID": 6,
+          "CODICE": 1500018,
+          "ASL": "ASL Napoli1 Centro",
+          "Comune": "Napoli",
+          "DENOMINAZI": "Rada S. Lucia Ovest",
+          "COD_CLASSI": "B",
+          "SPECIE_DES": "Mitili",
+          "LONG_CENTR": 14.246,
+          "LAT_CENTR": 40.826
+        },
+        "bbox": [
+          14.244440000536265,
+          40.82458999999894,
+          14.24871000053945,
+          40.82787999999894
+        ],
+        "geometry": {
+          "type": "MultiPolygon",
+          "coordinates": [
+            [
+              [
+                [
+                  14.24871000053945,
+                  40.825669999998944
+                ],
+                [
+                  14.246200000537668,
+                  40.82458999999894
+                ],
+                [
+                  14.244440000536265,
+                  40.82705999999897
+                ],
+                [
+                  14.245940000537317,
+                  40.82787999999894
+                ],
+                [
+                  14.24871000053945,
+                  40.825669999998944
+                ]
+              ]
+            ]
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "OBJECTID": 2,
+          "CODICE": 1500013,
+          "ASL": "ASL Napoli1 Centro",
+          "Comune": "Napoli",
+          "DENOMINAZI": "Rada S. Lucia Est",
+          "COD_CLASSI": "B",
+          "SPECIE_DES": "Mitili",
+          "LONG_CENTR": 14.252,
+          "LAT_CENTR": 40.827
+        },
+        "bbox": [
+          14.250990000541046,
+          40.825059999998935,
+          14.253440000542763,
+          40.82909999999893
+        ],
+        "geometry": {
+          "type": "MultiPolygon",
+          "coordinates": [
+            [
+              [
+                [
+                  14.253440000542763,
+                  40.82854999999895
+                ],
+                [
+                  14.252270000542067,
+                  40.825059999998935
+                ],
+                [
+                  14.250990000541046,
+                  40.82669999999893
+                ],
+                [
+                  14.251690000541453,
+                  40.82909999999893
+                ],
+                [
+                  14.253440000542763,
+                  40.82854999999895
+                ]
+              ]
+            ]
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "OBJECTID": 5,
+          "CODICE": 1500016,
+          "ASL": "ASL Napoli2 Nord",
+          "Comune": "Giugliano in Campania",
+          "DENOMINAZI": "Varcaturo Giacobbe",
+          "COD_CLASSI": "B",
+          "SPECIE_DES": "Mitili",
+          "LONG_CENTR": 13.998,
+          "LAT_CENTR": 40.885
+        },
+        "bbox": [
+          13.987800000373431,
+          40.87472999999932,
+          14.008110000384814,
+          40.89520999999935
+        ],
+        "geometry": {
+          "type": "MultiPolygon",
+          "coordinates": [
+            [
+              [
+                [
+                  14.008110000384814,
+                  40.878599999999295
+                ],
+                [
+                  13.99718000037905,
+                  40.87472999999932
+                ],
+                [
+                  13.987800000373431,
+                  40.89134999999936
+                ],
+                [
+                  13.998590000379046,
+                  40.89520999999935
+                ],
+                [
+                  14.008110000384814,
+                  40.878599999999295
+                ]
+              ]
+            ]
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "OBJECTID": 13,
+          "CODICE": 1500033,
+          "ASL": "ASL Napoli2 Nord",
+          "Comune": "Giugliano in Campania",
+          "DENOMINAZI": "Varcaturo Acherusia",
+          "COD_CLASSI": "B",
+          "SPECIE_DES": "Mitili",
+          "LONG_CENTR": 14.014,
+          "LAT_CENTR": 40.893
+        },
+        "bbox": [
+          13.998500000378836,
+          40.87932999999932,
+          14.028330000395622,
+          40.90632999999934
+        ],
+        "geometry": {
+          "type": "MultiPolygon",
+          "coordinates": [
+            [
+              [
+                [
+                  14.028330000395622,
+                  40.88749999999931
+                ],
+                [
+                  14.013670000387838,
+                  40.87932999999932
+                ],
+                [
+                  13.998500000378836,
+                  40.89966999999936
+                ],
+                [
+                  14.013830000386891,
+                  40.90632999999934
+                ],
+                [
+                  14.028330000395622,
+                  40.88749999999931
+                ]
+              ]
+            ]
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "OBJECTID": 9,
+          "CODICE": 1500026,
+          "ASL": "ASL Caserta",
+          "Comune": "Castelvolturno",
+          "DENOMINAZI": "Torre di Pescopagano",
+          "COD_CLASSI": "A",
+          "SPECIE_DES": "Mitili",
+          "LONG_CENTR": 13.861,
+          "LAT_CENTR": 41.05
+        },
+        "bbox": [
+          13.855000000303585,
+          41.04332999999963,
+          13.86667000030908,
+          41.05716999999966
+        ],
+        "geometry": {
+          "type": "MultiPolygon",
+          "coordinates": [
+            [
+              [
+                [
+                  13.86667000030908,
+                  41.044999999999646
+                ],
+                [
+                  13.862500000307268,
+                  41.04332999999963
+                ],
+                [
+                  13.855000000303585,
+                  41.05499999999964
+                ],
+                [
+                  13.858830000305208,
+                  41.05716999999966
+                ],
+                [
+                  13.86667000030908,
+                  41.044999999999646
+                ]
+              ]
+            ]
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "OBJECTID": 0,
+          "CODICE": 1500011,
+          "ASL": "ASL Caserta",
+          "Comune": "Castelvolturno",
+          "DENOMINAZI": "Castelvolturno",
+          "COD_CLASSI": "B",
+          "SPECIE_DES": "Mitili",
+          "LONG_CENTR": 13.871,
+          "LAT_CENTR": 41.023
+        },
+        "bbox": [
+          13.865647,
+          41.017525,
+          13.875462,
+          41.027548
+        ],
+        "geometry": {
+          "type": "MultiPolygon",
+          "coordinates": [
+            [
+              [
+                [
+                  13.871199,
+                  41.027548
+                ],
+                [
+                  13.875462,
+                  41.019139
+                ],
+                [
+                  13.869911,
+                  41.017525
+                ],
+                [
+                  13.865647,
+                  41.025933
+                ],
+                [
+                  13.871199,
+                  41.027548
+                ]
+              ]
+            ]
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "OBJECTID": 15,
+          "CODICE": 1500036,
+          "ASL": "ASL Napoli2 Nord",
+          "Comune": "Monte di Procida",
+          "DENOMINAZI": "Acquamorta Nord",
+          "COD_CLASSI": "B",
+          "SPECIE_DES": "Mitili",
+          "LONG_CENTR": 14.026,
+          "LAT_CENTR": 40.796
+        },
+        "bbox": [
+          14.025,
+          40.795,
+          14.02795,
+          40.7980333
+        ],
+        "geometry": {
+          "type": "MultiPolygon",
+          "coordinates": [
+            [
+              [
+                [
+                  14.025,
+                  40.795
+                ],
+                [
+                  14.025,
+                  40.7980333
+                ],
+                [
+                  14.02795,
+                  40.7977
+                ],
+                [
+                  14.02795,
+                  40.795
+                ],
+                [
+                  14.025,
+                  40.795
+                ]
+              ]
+            ]
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "OBJECTID": 8,
+          "CODICE": 1500022,
+          "ASL": "ASL Napoli 3 Sud",
+          "Comune": "Torre del Greco",
+          "DENOMINAZI": "Cavaliere / Bassano Sud",
+          "COD_CLASSI": "B",
+          "SPECIE_DES": "Mitili",
+          "LONG_CENTR": 14.376,
+          "LAT_CENTR": 40.766
+        },
+        "bbox": [
+          14.3741017,
+          40.7646817,
+          14.3778733,
+          40.76756169999999
+        ],
+        "geometry": {
+          "type": "MultiPolygon",
+          "coordinates": [
+            [
+              [
+                [
+                  14.3741017,
+                  40.7663367
+                ],
+                [
+                  14.3758317,
+                  40.76756169999999
+                ],
+                [
+                  14.3778733,
+                  40.7658883
+                ],
+                [
+                  14.3761183,
+                  40.7646817
+                ],
+                [
+                  14.3741017,
+                  40.7663367
+                ]
+              ]
+            ]
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "OBJECTID": 19,
+          "CODICE": 1500021,
+          "ASL": "ASL Napoli2 Nord",
+          "Comune": "Pozzuoli",
+          "DENOMINAZI": "Lucrino",
+          "COD_CLASSI": "B",
+          "SPECIE_DES": "Mitili",
+          "LONG_CENTR": 14.096,
+          "LAT_CENTR": 40.823
+        },
+        "bbox": [
+          14.09423299981056,
+          40.8225829979711,
+          14.097717012998176,
+          40.82423300031348
+        ],
+        "geometry": {
+          "type": "MultiPolygon",
+          "coordinates": [
+            [
+              [
+                [
+                  14.097717012998176,
+                  40.82263300962217
+                ],
+                [
+                  14.094400005446003,
+                  40.8225829979711
+                ],
+                [
+                  14.09423299981056,
+                  40.82423300031348
+                ],
+                [
+                  14.097533003146001,
+                  40.82413299956971
+                ],
+                [
+                  14.097717012998176,
+                  40.82263300962217
+                ]
+              ]
+            ]
+          ]
+        }
+      }
+    ]
+  }

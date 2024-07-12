@@ -10,11 +10,14 @@
 #include "log4cplus/logger.h"
 #include "log4cplus/loggingmacros.h"
 
+#include <nlohmann/json.hpp>
 #include <fstream>
 
 #include "Area.hpp"
+#include "WacommAdapter.hpp"
 
 using namespace std;
+using json = nlohmann::json;
 
 class Areas : private vector<Area> {
 public:
@@ -30,7 +33,7 @@ public:
     using vector::end;
     using vector::erase;
 
-    void loadFromJson(const string &fileName);
+    void loadFromJson(const string &fileName, std::shared_ptr<WacommAdapter> wacommAdapter);
 
 private:
     log4cplus::Logger logger;

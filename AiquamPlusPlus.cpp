@@ -8,15 +8,46 @@ AiquamPlusPlus::~AiquamPlusPlus() = default;
 
 AiquamPlusPlus::AiquamPlusPlus(std::shared_ptr<Config> config): config(config) {
     logger = log4cplus::Logger::getInstance(LOG4CPLUS_TEXT("Aiquam"));
+
+    areas = std::make_shared<Areas>();
 }
 
 void AiquamPlusPlus::run() {
-    
+    int world_size = 1, world_rank = 0;
+    int nPoints = 0;
+    size_t ncInputs = config->NcInputs().size();
+
+#ifdef USE_MPI
+    MPI_Comm_size(MPI_COMM_WORLD, &world_size);
+    MPI_Comm_rank(MPI_COMM_WORLD, &world_rank);
+#endif
+
+    for (size_t fileIdx = 0; fileIdx < ncInputs; ++fileIdx) {
+        std::string& ncInput = config->NcInputs()[fileIdx];
+
+        if (world_rank == 0) {
+            LOG4CPLUS_INFO(logger, world_rank << ": Input from Ocean Model: " << ncInput);
+        }
+
+        shared_ptr<WacommAdapter> wacommAdapter = make_shared<WacommAdapter>(ncInput);
+        wacommAdapter->process();
+
+        size_t time=wacommAdapter->Conc().Nx();
+        size_t depth=wacommAdapter->Conc().Ny();
+        size_t lat=wacommAdapter->Conc().Nz();
+        size_t lon=wacommAdapter->Conc().N4();
+
+        if (world_rank == 0 && fileIdx == 0) {
+            string fileName = config->AreasFile();
+
+            if (fileName.substr(fileName.find_last_of('.') + 1) == "json") {
+                areas->loadFromJson(fileName, wacommAdapter);
+            }
+        }
+    }
+
     /*
     Aiquam aiquam(config);
-
-    int world_size = 1, world_rank = 0;
-    size_t ncInputs = config->NcInputs().size();
 
     std::unique_ptr<float[]> timeseries;
 
@@ -44,8 +75,7 @@ void AiquamPlusPlus::run() {
             LOG4CPLUS_INFO(logger, world_rank << ": Input from Ocean Model: " << ncInput);
         }
 
-        shared_ptr<WacommAdapter> wacommAdapter;
-        wacommAdapter = make_shared<WacommAdapter>(ncInput);
+        shared_ptr<WacommAdapter> wacommAdapter = make_shared<WacommAdapter>(ncInput);
         wacommAdapter->process();
 
         size_t time=wacommAdapter->Conc().Nx();

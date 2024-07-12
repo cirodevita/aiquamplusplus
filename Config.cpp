@@ -42,11 +42,24 @@ config_model *Config::dataptr() {
     return &_data;
 }
 
+string Config::AreasFile() const {
+    return areasFile;
+}
+
+void Config::AreasFile(string value) {
+    areasFile=value;
+}
+
 void Config::loadFromJson(const string &fileName) {
     setDefault();
     json config;
     std::ifstream i(fileName);
     i >> config;
+
+    if (config.contains("areas")) {
+        json areas=config["areas"];
+        if (areas.contains("areas_file")) { areasFile = areas["areas_file"]; }
+    }
 
     if (config.contains("io")) {
         json io=config["io"];
