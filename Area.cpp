@@ -24,3 +24,19 @@ area_data Area::data() {
 void Area::data(area_data data) {
     _data = data;
 }
+
+double Area::J() const {
+    return _data.j;
+}
+
+double Area::I() const {
+    return _data.i;
+}
+
+void Area::addTimeSeriesValue(float value) {
+    _data.timeseries.push_back(value);
+}
+
+std::vector<float>& Area::getTimeSeries() {
+    return _data.timeseries;
+}

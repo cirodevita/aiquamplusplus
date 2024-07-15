@@ -146,7 +146,7 @@ void WacommAdapter::latlon2ji(double lat, double lon, double &j, double &i) {
         i=minI;
     }
 
-    LOG4CPLUS_INFO(logger, "lat, lon: " << _data.lat(j) << ", " << _data.lon(i));
+    LOG4CPLUS_DEBUG(logger, "lat, lon: " << _data.lat(j) << ", " << _data.lon(i));
 }
 
 // Returns -1 if a < 0 and 1 if a > 0

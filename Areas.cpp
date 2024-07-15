@@ -28,7 +28,7 @@ void Areas::loadFromJson(const string &fileName, std::shared_ptr<WacommAdapter> 
                     maxLon = feature["bbox"][2];
                     maxLat = feature["bbox"][3];
 
-                    LOG4CPLUS_INFO(logger, "Bounding box from bbox: [" << minLon << ", " << minLat << ", " << maxLon << ", " << maxLat << "]");
+                    LOG4CPLUS_DEBUG(logger, "Bounding box from bbox: [" << minLon << ", " << minLat << ", " << maxLon << ", " << maxLat << "]");
                 } else if (feature.contains("geometry")) {
                     auto geometry = feature["geometry"];
                     if (geometry.contains("type") && geometry["type"] == "MultiPolygon") {
@@ -55,16 +55,20 @@ void Areas::loadFromJson(const string &fileName, std::shared_ptr<WacommAdapter> 
                                     }
                                 }
 
-                                LOG4CPLUS_INFO(logger, "Bounding box calculated: [" << minLon << ", " << minLat << ", " << maxLon << ", " << maxLat << "]");
+                                LOG4CPLUS_DEBUG(logger, "Bounding box calculated: [" << minLon << ", " << minLat << ", " << maxLon << ", " << maxLat << "]");
                             }
                         }
                     }
                 }
 
                 wacommAdapter->latlon2ji(minLat, minLon, minJ, minI);
-                LOG4CPLUS_INFO(logger, "i, j: " << minI << ", " << minJ);
                 wacommAdapter->latlon2ji(maxLat, maxLon, maxJ, maxI);
-                LOG4CPLUS_INFO(logger, "i, j: " << maxI << ", " << maxJ);
+
+                for (int j=int(minJ); j<int(maxJ); j++) {
+                    for (int i=int(minI); i<int(maxI); i++) {
+                        this->push_back(Area(j, i));
+                    }
+                }
             }
         }
 
