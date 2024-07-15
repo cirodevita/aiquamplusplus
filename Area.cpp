@@ -33,10 +33,10 @@ double Area::I() const {
     return _data.i;
 }
 
-void Area::addTimeSeriesValue(float value) {
-    _data.timeseries.push_back(value);
+void Area::addValue(float value) {
+    _data.values.push_back(value);
 }
 
-std::vector<float>& Area::getTimeSeries() {
-    return _data.timeseries;
+std::vector<float>& Area::Values() {
+    return _data.values;
 }

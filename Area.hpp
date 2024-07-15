@@ -13,7 +13,7 @@
 struct area_data {
     double i;
     double j;
-    std::vector<float> timeseries;
+    std::vector<float> values;
 };
 
 class Area {
@@ -29,8 +29,8 @@ public:
     double J() const;
     double I() const;
 
-    void addTimeSeriesValue(float value);
-    std::vector<float>& getTimeSeries();
+    void addValue(float value);
+    std::vector<float>& Values();
 private:
     log4cplus::Logger logger;
     area_data _data{};

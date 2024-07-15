@@ -35,6 +35,9 @@ private:
     log4cplus::Logger logger;
     std::shared_ptr<Config> config;
     std::shared_ptr<Areas> areas;
+
+    void serialize(const area_data& data, std::vector<char>& buffer);
+    void deserialize(const std::vector<char>& buffer, area_data& data);
 };
 
 #endif //AIQUAMPLUSPLUS_AIQUAMMPLUSPLUS_HPP
