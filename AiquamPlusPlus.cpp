@@ -50,10 +50,16 @@ void AiquamPlusPlus::deserialize(const std::vector<char>& buffer, area_data& dat
 }
 
 void AiquamPlusPlus::run() {
-    int world_size = 1, world_rank = 0, nAreas = 0;
+    int ompMaxThreads=1, ompThreadNum=0;
+    int world_size=1, world_rank=0, nAreas=0;
     int ncInputs = config->NcInputs().size();
 
     Aiquam aiquam(config);
+
+#ifdef USE_OMP
+    // Get the number of threads available for computation
+    ompMaxThreads=omp_get_max_threads();
+#endif
 
 #ifdef USE_MPI
     MPI_Comm_size(MPI_COMM_WORLD, &world_size);
@@ -110,6 +116,8 @@ void AiquamPlusPlus::run() {
                 send_counts[i] = areasPerProcess + (i < spare ? 1 : 0);
                 displs[i] = (i > 0) ? (displs[i - 1] + send_counts[i - 1]) : 0;
                 send_counts[i] *= sizeof(double) * 2 + sizeof(size_t) + (fileIdx + 1) * sizeof(float);
+
+                LOG4CPLUS_DEBUG(logger, world_rank << ": send_counts[0]=" << send_counts.get()[0] << " displ[0]=" << displs.get()[0]);
             }
 
             // Serialize the data
@@ -166,21 +174,78 @@ void AiquamPlusPlus::run() {
         pLocalAreas = localAreas.get();
 #else
         pLocalAreas = areas.get();
+        
 #endif
     }
 
     LOG4CPLUS_INFO(logger, world_rank << ": Local areas:" << pLocalAreas->size());
 
+    int areasToProcess = pLocalAreas->size();
+
+    // Get the number of areas to be processed by each thread
+    size_t areasPerThread = areasToProcess / ompMaxThreads;
+
+    // Get the number of spare areas for the thread with tidx==0
+    size_t sparePerThread = areasToProcess % ompMaxThreads;
+    
+    // Dafine an array with the number of areas to be processed by each thread
+    size_t thread_counts[ompMaxThreads];
+
+    // Define an array with the displacement of areas to be processed by each thread
+    size_t thread_displs[ompMaxThreads];
+
+    // The first thread get the spare
+    thread_counts[0] = (int)((areasPerThread + sparePerThread));
+
+    // The first tread starts from 0
+    thread_displs[0] = 0;
+
+    // For each available thread...
+    for (int tidx = 1; tidx < ompMaxThreads; tidx++) {
+
+        // Set the number of particles per thread
+        thread_counts[tidx] = (int)(areasPerThread);
+
+        // Set the displaement
+        thread_displs[tidx]=thread_counts[0]+areasPerThread*(tidx-1);
+    }
+
+    #pragma omp parallel default(none) private(ompThreadNum) shared(world_rank, thread_counts, thread_displs, pLocalAreas, areasPerThread, aiquam)
+    {
+#ifdef USE_OMP
+        // Get the number of the current thread
+        ompThreadNum = omp_get_thread_num();
+#endif
+        // Get the index (array pLocalParticles) of the first particle the thread must process
+        size_t first = thread_displs[ompThreadNum];
+
+        // Get the index (array pLocalParticles) of the last particle the thread must process
+        size_t last = first + thread_counts[ompThreadNum];
+
+        LOG4CPLUS_DEBUG(logger, world_rank << ": ompThreadNum: " << ompThreadNum << ", first: " << first << ", last: " << last);
+
+        for (size_t idx = first; idx < last; idx++) {
+            LOG4CPLUS_DEBUG(logger, world_rank << ": ompThreadNum: " << ompThreadNum << ": idx: " << idx << ": i:" << pLocalAreas->at(idx).data().i << ", j: " << pLocalAreas->at(idx).data().j << ", values: " << pLocalAreas->at(idx).data().values.size());
+            int predicted_class = aiquam.inference(pLocalAreas->at(idx).data().values);
+            LOG4CPLUS_DEBUG(logger, world_rank << ": Predicted class: " << predicted_class << std::endl);
+        }
+    }
+
+    if (world_rank == 0) {
+        LOG4CPLUS_INFO(logger, "Finish");
+    }
+
+    /*
     auto start_whole = std::chrono::high_resolution_clock::now();
     for (int idx=0; idx<pLocalAreas->size(); idx++) {
         LOG4CPLUS_INFO(logger, world_rank << ": idx: " << idx << ": i:" << pLocalAreas->at(idx).data().i << ", j: " << pLocalAreas->at(idx).data().j << ", values: " << pLocalAreas->at(idx).data().values.size());
 
-        int predicted_class = aiquam.inference(pLocalAreas->at(idx).data().values);
-
-        LOG4CPLUS_DEBUG(logger, world_rank <<": Predicted class: " << predicted_class << std::endl);
+        // int predicted_class = aiquam.inference(pLocalAreas->at(idx).data().values);
+        // LOG4CPLUS_DEBUG(logger, world_rank <<": Predicted class: " << predicted_class << std::endl);
     }
     auto end_whole = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> elapsedLocal = end_whole - start_whole;
 
     LOG4CPLUS_INFO(logger, world_rank << " Global Execution Time (sec): " << elapsedLocal.count());
+    */
 }

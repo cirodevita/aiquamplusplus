@@ -17,6 +17,10 @@
 
 #include <string>
 
+#ifdef USE_OMP
+#include <omp.h>
+#endif
+
 #ifdef USE_MPI
 #define OMPI_SKIP_MPICXX
 #include <mpi.h>
