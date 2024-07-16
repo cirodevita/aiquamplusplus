@@ -13,6 +13,8 @@ void Areas::loadFromJson(const string &fileName, std::shared_ptr<WacommAdapter> 
 
     std::ifstream infile(fileName);
 
+    Array::Array2 mask = wacommAdapter->Mask();
+
     try {
         json featureCollection;
         infile >> featureCollection;
@@ -66,7 +68,9 @@ void Areas::loadFromJson(const string &fileName, std::shared_ptr<WacommAdapter> 
 
                 for (int j=int(minJ); j<int(maxJ); j++) {
                     for (int i=int(minI); i<int(maxI); i++) {
-                        this->push_back(Area(j, i));
+                        if (mask(j, i) == 1) {
+                            this->push_back(Area(j, i));
+                        }
                     }
                 }
             }

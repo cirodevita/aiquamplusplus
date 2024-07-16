@@ -65,9 +65,9 @@ void WacommAdapter::process() {
     varSfconc.getVar(sfconc());
 
     // Retrieve the variable named "mask"
-    //netCDF::NcVar varmask=dataFile.getVar("mask");
-    //Array::Array2<double> mask(dimLat,dimLon);
-    //varmask.getVar(mask());
+    netCDF::NcVar varmask=dataFile.getVar("mask");
+    Array::Array2<double> mask(dimLat,dimLon);
+    varmask.getVar(mask());
 
     this->Time().Allocate(dimTime);
     this->Depth().Allocate(dimDepth);
@@ -85,7 +85,7 @@ void WacommAdapter::process() {
     this->Lon().Load(lon());
     this->Conc().Load(conc());
     this->Sfconc().Load(sfconc());
-    //this->Mask().Load(mask());
+    this->Mask().Load(mask());
 
     #pragma omp parallel for collapse(1) default(none) shared(dimLat)
     for (int i=0; i<dimLat;i++) {
