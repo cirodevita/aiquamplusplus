@@ -35,29 +35,41 @@ public:
     config_model *dataptr();
 
     string &ConfigFile();
-    vector<string> &NcInputs();
-    vector<struct config_model> &Models();
 
-    void loadFromJson(const string &fileName);
+    string Name() const;
+    void Name(string value);
+    string Date() const;
+    void Date(string value);
+
+    vector<string> &NcInputs();
+    string NcOutputRoot() const;
+    void NcOutputRoot(string value);
+
+    vector<struct config_model> &Models();
 
     string AreasFile() const;
     void AreasFile(string value);
 
+    void loadFromJson(const string &fileName);
+
 private:
     log4cplus::Logger logger;
 
-    std::map<std::string, int> dictionary;
     string configFile;
+
+    string name;
+    string date;
 
     string ncBasePath;
     vector<string> ncInputs;
+    string ncOutputRoot;
 
     string modelsBasePath;
     vector<struct config_model> models;
 
-    config_model _data;
-
     string areasFile;
+
+    config_model _data;
 
     void setDefault();
 };

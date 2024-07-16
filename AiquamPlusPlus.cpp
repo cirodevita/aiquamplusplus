@@ -82,6 +82,10 @@ void AiquamPlusPlus::run() {
 
     Areas *pLocalAreas;
 
+    Array::Array3<int> predictions;
+
+    shared_ptr<WacommAdapter> wacommAdapter;
+
     for (int fileIdx = 0; fileIdx < ncInputs; ++fileIdx) {
         std::string& ncInput = config->NcInputs()[fileIdx];
 
@@ -89,7 +93,7 @@ void AiquamPlusPlus::run() {
             LOG4CPLUS_INFO(logger, world_rank << ": Input from Ocean Model: " << ncInput);
         }
 
-        shared_ptr<WacommAdapter> wacommAdapter = make_shared<WacommAdapter>(ncInput);
+        wacommAdapter = make_shared<WacommAdapter>(ncInput);
         wacommAdapter->process();
 
         if (world_rank == 0 && fileIdx == 0) {
@@ -105,6 +109,19 @@ void AiquamPlusPlus::run() {
         size_t depth = wacommAdapter->Conc().Ny();
         size_t lat = wacommAdapter->Conc().Nz();
         size_t lon = wacommAdapter->Conc().N4();
+
+        // Define the final predictions matrix
+        predictions.Allocate(time, lat, lon);
+        
+        // Set the concentration matrix to 0
+        #pragma omp parallel for collapse(3) default(none) shared(time, lat, lon, predictions)
+        for (int t=0; t<time; t++) {
+            for (int j=0; j<lat; j++) {
+                for (int i=0; i<lon; i++) {
+                    predictions(t,j,i)=0;
+                }
+            }
+        }
 
         if (world_rank == 0) {
             // Calculate the number of areas for each process
@@ -210,7 +227,7 @@ void AiquamPlusPlus::run() {
         thread_displs[tidx]=thread_counts[0]+areasPerThread*(tidx-1);
     }
 
-    #pragma omp parallel default(none) private(ompThreadNum) shared(world_rank, thread_counts, thread_displs, pLocalAreas, areasPerThread, aiquam)
+    #pragma omp parallel default(none) private(ompThreadNum) shared(world_rank, thread_counts, thread_displs, pLocalAreas, areasPerThread, aiquam, predictions)
     {
 #ifdef USE_OMP
         // Get the number of the current thread
@@ -226,26 +243,102 @@ void AiquamPlusPlus::run() {
 
         for (size_t idx = first; idx < last; idx++) {
             LOG4CPLUS_DEBUG(logger, world_rank << ": ompThreadNum: " << ompThreadNum << ": idx: " << idx << ": i:" << pLocalAreas->at(idx).data().i << ", j: " << pLocalAreas->at(idx).data().j << ", values: " << pLocalAreas->at(idx).data().values.size());
+
             int predicted_class = aiquam.inference(pLocalAreas->at(idx).data().values);
-            LOG4CPLUS_DEBUG(logger, world_rank << ": Predicted class: " << predicted_class << std::endl);
+            predictions(0, pLocalAreas->at(idx).data().j, pLocalAreas->at(idx).data().i) = predicted_class;
         }
+#ifdef USE_OMP
+        // Barrier to ensure all threads have finished processing
+        #pragma omp barrier
+#endif
     }
+
+#ifdef USE_MPI
+    // Barrier to ensure all processes have finished
+    MPI_Barrier(MPI_COMM_WORLD);
+#endif
 
     if (world_rank == 0) {
-        LOG4CPLUS_INFO(logger, "Finish");
+        // Create the output filename
+        string ncOutputFilename=config->NcOutputRoot()+config->Date()+".nc";
+        
+        LOG4CPLUS_INFO(logger, "Saving output:" << ncOutputFilename);
+
+        // Save the history
+        save(ncOutputFilename, wacommAdapter, predictions);
     }
+}
 
-    /*
-    auto start_whole = std::chrono::high_resolution_clock::now();
-    for (int idx=0; idx<pLocalAreas->size(); idx++) {
-        LOG4CPLUS_INFO(logger, world_rank << ": idx: " << idx << ": i:" << pLocalAreas->at(idx).data().i << ", j: " << pLocalAreas->at(idx).data().j << ", values: " << pLocalAreas->at(idx).data().values.size());
+void AiquamPlusPlus::save(const string &fileName, shared_ptr<WacommAdapter> wacommAdapter, Array::Array3<int> &predictions) {
+    size_t time = wacommAdapter->Conc().Nx();
+    size_t depth = wacommAdapter->Conc().Ny();
+    size_t lat = wacommAdapter->Conc().Nz();
+    size_t lon = wacommAdapter->Conc().N4();
 
-        // int predicted_class = aiquam.inference(pLocalAreas->at(idx).data().values);
-        // LOG4CPLUS_DEBUG(logger, world_rank <<": Predicted class: " << predicted_class << std::endl);
-    }
-    auto end_whole = std::chrono::high_resolution_clock::now();
-    std::chrono::duration<double> elapsedLocal = end_whole - start_whole;
+    LOG4CPLUS_INFO(logger,"Saving in: " << fileName);
 
-    LOG4CPLUS_INFO(logger, world_rank << " Global Execution Time (sec): " << elapsedLocal.count());
-    */
+    // Open the file for read access
+    netCDF::NcFile dataFile(fileName, netCDF::NcFile::replace, netCDF::NcFile::nc4);
+    LOG4CPLUS_INFO(logger,"--------------: " << fileName);
+
+    netCDF::NcDim timeDim = dataFile.addDim("time", time);
+    netCDF::NcVar timeVar = dataFile.addVar("time", netCDF::ncDouble, timeDim);
+    timeVar.putAtt("description","Time since initialization");
+    timeVar.putAtt("long_name","time since initialization");
+    timeVar.putAtt("units","seconds since 1968-05-23 00:00:00 GMT");
+    timeVar.putAtt("calendar","gregorian");
+    timeVar.putAtt("field","time, scalar, series");
+    timeVar.putAtt("_CoordinateAxisType","Time");
+    timeVar.putVar(wacommAdapter->Time()());
+
+    netCDF::NcDim depthDim = dataFile.addDim("depth", depth);
+    netCDF::NcVar depthVar = dataFile.addVar("depth", netCDF::ncDouble, depthDim);
+    depthVar.putAtt("description","depth");
+    depthVar.putAtt("long_name","depth");
+    depthVar.putAtt("units","meters");
+    depthVar.putVar(wacommAdapter->Depth()());
+
+    netCDF::NcDim lonDim = dataFile.addDim("longitude", lon);
+    netCDF::NcVar lonVar = dataFile.addVar("longitude", netCDF::ncDouble, lonDim);
+    lonVar.putAtt("description","Longitude");
+    lonVar.putAtt("long_name","longitude");
+    lonVar.putAtt("units","degrees_east");
+    lonVar.putVar(wacommAdapter->Lon()());
+
+    netCDF::NcDim latDim = dataFile.addDim("latitude", lat);
+    netCDF::NcVar latVar = dataFile.addVar("latitude", netCDF::ncDouble, latDim);
+    latVar.putAtt("description","Latitude");
+    latVar.putAtt("long_name","latitude");
+    latVar.putAtt("units","degrees_north");
+    latVar.putVar(wacommAdapter->Lat()());
+
+    std::vector<netCDF::NcDim> timeDepthLatLon;
+    timeDepthLatLon.push_back(timeDim);
+    timeDepthLatLon.push_back(depthDim);
+    timeDepthLatLon.push_back(latDim);
+    timeDepthLatLon.push_back(lonDim);
+
+    netCDF::NcVar concVar = dataFile.addVar("conc", netCDF::ncDouble, timeDepthLatLon);
+    concVar.putAtt("description","concentration of suspended matter in sea water");
+    concVar.putAtt("units","1");
+    concVar.putAtt("long_name","concentration");
+    concVar.putAtt("_FillValue", netCDF::ncDouble, 9.99999993e+36);
+    concVar.putVar(wacommAdapter->Conc()());
+
+    std::vector<netCDF::NcDim> timeLatLon;
+    timeLatLon.push_back(timeDim);
+    timeLatLon.push_back(latDim);
+    timeLatLon.push_back(lonDim);
+
+    netCDF::NcVar sfconcVar = dataFile.addVar("sfconc", netCDF::ncDouble, timeLatLon);
+    sfconcVar.putAtt("description","concentration of suspended matter at the surface");
+    sfconcVar.putAtt("units","1");
+    sfconcVar.putAtt("long_name","surface_concentration");
+    sfconcVar.putAtt("_FillValue", netCDF::ncDouble, 9.99999993e+36);
+    sfconcVar.putVar(wacommAdapter->Sfconc()());
+
+    netCDF::NcVar predVar = dataFile.addVar("class_predict", netCDF::ncDouble, timeLatLon);
+    predVar.putAtt("description","predicted class of concentration of pollutants in mussels");
+    predVar.putAtt("long_name","class_predict");
+    predVar.putVar(predictions());
 }

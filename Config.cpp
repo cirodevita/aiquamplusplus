@@ -30,16 +30,40 @@ string &Config::ConfigFile() {
     return configFile;
 }
 
+config_model *Config::dataptr() {
+    return &_data;
+}
+
+string Config::Name() const {
+    return name;
+}
+
+void Config::Name(string value) {
+    name=value;
+}
+
+string Config::Date() const {
+    return date;
+}
+
+void Config::Date(string value) {
+    date=value;
+}
+
 vector<string> &Config::NcInputs() {
     return ncInputs;
 }
 
-vector<struct config_model> &Config::Models() {
-    return models;
+string Config::NcOutputRoot() const {
+    return ncOutputRoot;
 }
 
-config_model *Config::dataptr() {
-    return &_data;
+void Config::NcOutputRoot(string value) {
+    ncOutputRoot=value;
+}
+
+vector<struct config_model> &Config::Models() {
+    return models;
 }
 
 string Config::AreasFile() const {
@@ -56,6 +80,12 @@ void Config::loadFromJson(const string &fileName) {
     std::ifstream i(fileName);
     i >> config;
 
+    if (config.contains("prediction")) {
+        json prediction=config["prediction"];
+        if (prediction.contains("name")) { name = prediction["name"]; }
+        if (prediction.contains("date")) { date = prediction["date"]; }
+    }
+
     if (config.contains("areas")) {
         json areas=config["areas"];
         if (areas.contains("areas_file")) { areasFile = areas["areas_file"]; }
@@ -70,6 +100,7 @@ void Config::loadFromJson(const string &fileName) {
                 this->ncInputs.push_back(ncBasePath+"/"+file);
             }
         }
+        if (io.contains("nc_output_root")) { ncOutputRoot = io["nc_output_root"]; }
     }
 
     if (config.contains("inference")) {
