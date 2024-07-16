@@ -25,6 +25,7 @@ struct wacomm_data {
     Array::Array4<double> conc;
     Array::Array3<double> sfconc;
     Array::Array2<double> mask;
+    double fillValue;
 };
 
 class WacommAdapter {
@@ -35,6 +36,8 @@ class WacommAdapter {
         void process();
 
         void latlon2ji(double lat, double lon, double &j, double &i);
+
+        float calculateConc(double j, double i);
 
         wacomm_data *dataptr();
 
@@ -47,6 +50,7 @@ class WacommAdapter {
         Array::Array4<double> &Conc();
         Array::Array3<double> &Sfconc();
         Array::Array2<double> &Mask();
+        double &FillValue();
 
     private:
         log4cplus::Logger logger;

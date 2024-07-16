@@ -141,14 +141,7 @@ void AiquamPlusPlus::run() {
             sendbuf.clear();
             for (int idx = 0; idx < nAreas; idx++) {
                 Area& area = areas->at(idx);
-
-                float current_conc = 0.0;
-                for (int z_idx = 0; z_idx < depth; z_idx++) {
-                    // TODO: add check for NAN values
-                    // current_conc += wacommAdapter->Conc()(0, z_idx, area.J(), area.I());
-                    current_conc += 0;
-                }
-                area.addValue(current_conc);
+                area.addValue(wacommAdapter->calculateConc(area.J(), area.I()));
 
                 area_data data;
                 data.i = area.I();

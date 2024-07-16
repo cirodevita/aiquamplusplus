@@ -19,6 +19,7 @@ Array::Array1<double> &WacommAdapter::LonRad() { return _data.lonRad; }
 Array::Array4<double> &WacommAdapter::Conc() { return _data.conc; }
 Array::Array3<double> &WacommAdapter::Sfconc() { return _data.sfconc; }
 Array::Array2<double> &WacommAdapter::Mask() { return _data.mask; }
+double &WacommAdapter::FillValue() { return _data.fillValue; }
 
 wacomm_data *WacommAdapter::dataptr() {
     return &_data;
@@ -57,6 +58,8 @@ void WacommAdapter::process() {
     // Retrieve the variable named "conc"
     netCDF::NcVar varConc=dataFile.getVar("conc");
     Array::Array4<double> conc(dimTime,dimDepth,dimLat,dimLon);
+    netCDF::NcVarAtt fillValueAtt = varConc.getAtt("_FillValue");
+    fillValueAtt.getValues(&_data.fillValue);
     varConc.getVar(conc());
 
     // Retrieve the variable named "sfconc"
@@ -153,3 +156,14 @@ void WacommAdapter::latlon2ji(double lat, double lon, double &j, double &i) {
 
 // Returns -1 if a < 0 and 1 if a > 0
 double WacommAdapter::sgn(double a) { return (a > 0) - (a < 0); }
+
+float WacommAdapter::calculateConc(double j, double i) {
+    float conc = 0.0;
+    for (int idx = 0; idx < this->Depth().Size(); idx++) {
+        float current_conc = this->Conc()(0, idx, j, i);
+        if (current_conc != this->FillValue()) {
+            conc += current_conc;
+        }
+    }
+    return conc;
+}
