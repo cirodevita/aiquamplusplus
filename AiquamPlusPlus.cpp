@@ -50,8 +50,7 @@ void AiquamPlusPlus::deserialize(const std::vector<char>& buffer, area_data& dat
 }
 
 void AiquamPlusPlus::run() {
-    int ompMaxThreads=1, ompThreadNum=0;
-    int world_size=1, world_rank=0, nAreas=0;
+    int ompMaxThreads=1, ompThreadNum=0, world_size=1, world_rank=0, nAreas=0, num_gpus=0;
     int ncInputs = config->NcInputs().size();
 
 #ifdef USE_OMP
@@ -63,6 +62,20 @@ void AiquamPlusPlus::run() {
     MPI_Comm_size(MPI_COMM_WORLD, &world_size);
     MPI_Comm_rank(MPI_COMM_WORLD, &world_rank);
 #endif
+
+#ifdef USE_CUDA
+    // Get the number of available GPU devices
+    cudaError_t err = cudaGetDeviceCount(&num_gpus);
+
+    // Check if a GPU is available
+    if (num_gpus <= 0 || err != cudaSuccess) {
+
+        // If a GPU is not present, or a problem occurred, set the number of GPUs as 0;
+        num_gpus = 0;
+    }
+#endif
+
+    LOG4CPLUS_DEBUG(logger, "num_gpus: " << num_gpus);
 
     // Define a vector of integers hosting the number of areas for each processor
     std::unique_ptr<int[]> send_counts = std::make_unique<int[]>(world_size);
@@ -219,9 +232,13 @@ void AiquamPlusPlus::run() {
         thread_displs[tidx]=thread_counts[0]+areasPerThread*(tidx-1);
     }
 
-    #pragma omp parallel default(none) private(ompThreadNum) shared(world_rank, thread_counts, thread_displs, pLocalAreas, areasPerThread, predictions)
+    #pragma omp parallel default(none) private(ompThreadNum) shared(world_rank, thread_counts, thread_displs, pLocalAreas, areasPerThread, predictions, num_gpus)
     {
+#ifdef USE_CUDA
+        Aiquam aiquam(config, ompThreadNum%num_gpus);
+#else
         Aiquam aiquam(config);
+#endif
 
 #ifdef USE_OMP
         // Get the number of the current thread

@@ -26,6 +26,11 @@
 #include <mpi.h>
 #endif
 
+#ifdef USE_CUDA
+#include <cuda.h>
+#include <cuda_runtime_api.h>
+#endif
+
 using namespace std;
 
 class AiquamPlusPlus {

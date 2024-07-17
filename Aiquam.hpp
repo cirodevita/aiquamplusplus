@@ -15,7 +15,7 @@
 
 class Aiquam {
 public:
-    Aiquam(std::shared_ptr<Config>);
+    Aiquam(std::shared_ptr<Config>, int);
     ~Aiquam();
 
     int inference(std::vector<float>);
@@ -23,6 +23,7 @@ public:
 private:
     log4cplus::Logger logger;
     std::shared_ptr<Config> config;
+    int gpu_id;
 
     Ort::Env env;
     Ort::SessionOptions session_options;

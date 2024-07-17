@@ -31,7 +31,49 @@ find_package(CUDA)
 if(CUDA_FOUND AND USE_CUDA)
     message(STATUS "Use CUDA acceleration.")
     message(STATUS "CUDA Version: ${CUDA_VERSION_STRING}")
-    add_definitions(-DUSE_CUDA)
+    enable_language("CUDA")
+    if(${CUDA_VERSION_STRING} VERSION_GREATER_EQUAL "11.1")
+      		execute_process(COMMAND ${CMAKE_CUDA_COMPILER} --list-gpu-code RESULT_VARIABLE EXIT_CODE OUTPUT_VARIABLE OUTPUT_VAL)
+      		if(EXIT_CODE EQUAL 0)
+        		#Remove sm_
+        		string(REPLACE "sm_" "" OUTPUT_VAL ${OUTPUT_VAL})
+        		#Convert to list
+        		string(REPLACE "\n" ";" __CUDA_ARCH_BIN ${OUTPUT_VAL})
+        		#Remove last empty entry
+        		list(REMOVE_AT __CUDA_ARCH_BIN -1)
+      		else()
+        		message(FATAL_ERROR "Failed to run NVCC to get list of GPU codes: ${EXIT_CODE}")
+      		endif()
+    	elseif(${CUDA_VERSION_STRING} VERSION_GREATER_EQUAL "11.0")
+      		set(__CUDA_ARCH_BIN "35;37;50;52;53;60;61;62;70;72;75;80")
+    	elseif(${CUDA_VERSION_STRING} VERSION_GREATER_EQUAL "10.0")
+      		set(__CUDA_ARCH_BIN "30;32;35;37;50;52;53;60;61;62;70;72;75")
+    	elseif(${CUDA_VERSION_STRING} VERSION_GREATER_EQUAL "9.1")
+      		set(__CUDA_ARCH_BIN "30;32;35;37;50;52;53;60;61;62;70;72")
+    	else()
+      		set(__CUDA_ARCH_BIN "30;32;35;37;50;52;53;60;61;62;70")
+    	endif()
+	add_definitions(-DUSE_CUDA)
+    
+	set(CUDA_ARCH_BIN ${__CUDA_ARCH_BIN} CACHE STRING "Specify 'real' GPU architectures to build binaries for")
+    	
+    	if(POLICY CMP0104)
+		set(CMAKE_CUDA_ARCHITECTURES ${CUDA_ARCH_BIN})
+    		message(STATUS "CUDA Architectures: ${CMAKE_CUDA_ARCHITECTURES}")
+	else()
+		# Generate SASS
+    		set(CMAKE_CUDA_ARCHITECTURES ${CUDA_ARCH_BIN})
+    		# Generate PTX for last architecture
+    		list(GET CUDA_ARCH_BIN -1 ver)
+    		set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -gencode arch=compute_${ver},code=compute_${ver}")
+    		message(STATUS "CMAKE_CUDA_FLAGS: ${CMAKE_CUDA_FLAGS}")
+    
+    		add_library(pcl_cuda INTERFACE)
+    		target_include_directories(pcl_cuda INTERFACE ${CUDA_TOOLKIT_INCLUDE})
+	endif()
+
+    include_directories(${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
+    find_library(CUDART_LIBRARY cudart ${CMAKE_CUDA_IMPLICIT_LINK_DIRECTORIES})
 endif()
 
 # Include the support to external projects
@@ -80,7 +122,7 @@ set(ONNXRUNTIME_CUDA_VERSION "12")
 
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
     set(ONNXRUNTIME_PLATFORM "linux-x64")
-    if(USE_CUDA)
+    if(CUDA_FOUND AND USE_CUDA)
         set(ONNXRUNTIME_PLATFORM "${ONNXRUNTIME_PLATFORM}-gpu-cuda${ONNXRUNTIME_CUDA_VERSION}")
     endif()
 elseif(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
@@ -200,4 +242,4 @@ add_dependencies(netcdf hdf5)
 add_dependencies(netcdfcxx netcdf)
 add_dependencies(${PROJECT_NAME} log4cplus onnxruntime netcdfcxx)
 
-target_link_libraries(${PROJECT_NAME} pthread dl nlohmann_json::nlohmann_json ${LIBOMP} ${LIBMPI} ${ONNXRUNTIME} ${LIBNETCDFCXX} ${LIBNETCDF} ${LIBCURL} ${LIBHDF5} ${LIBZLIB} ${LIBSZLIB} ${LIBLOG4CPLUS})
+target_link_libraries(${PROJECT_NAME} pthread dl nlohmann_json::nlohmann_json ${LIBOMP} ${LIBMPI} ${ONNXRUNTIME} ${LIBNETCDFCXX} ${LIBNETCDF} ${LIBCURL} ${LIBHDF5} ${LIBZLIB} ${LIBSZLIB} ${LIBLOG4CPLUS} ${CUDART_LIBRARY})
