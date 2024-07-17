@@ -101,27 +101,7 @@ void AiquamPlusPlus::run() {
                 areas->loadFromJson(fileName, wacommAdapter);
                 nAreas = areas->size();
             }
-        }
 
-        size_t time = wacommAdapter->Conc().Nx();
-        size_t depth = wacommAdapter->Conc().Ny();
-        size_t lat = wacommAdapter->Conc().Nz();
-        size_t lon = wacommAdapter->Conc().N4();
-
-        // Define the final predictions matrix
-        predictions.Allocate(time, lat, lon);
-        
-        // Set the concentration matrix to 0
-        #pragma omp parallel for collapse(3) default(none) shared(time, lat, lon, predictions)
-        for (int t=0; t<time; t++) {
-            for (int j=0; j<lat; j++) {
-                for (int i=0; i<lon; i++) {
-                    predictions(t,j,i)=100;
-                }
-            }
-        }
-
-        if (world_rank == 0) {
             // Calculate the number of areas for each process
             size_t areasPerProcess = nAreas / world_size;
             size_t spare = nAreas % world_size;
@@ -130,11 +110,33 @@ void AiquamPlusPlus::run() {
             for (int i = 0; i < world_size; i++) {
                 send_counts[i] = areasPerProcess + (i < spare ? 1 : 0);
                 displs[i] = (i > 0) ? (displs[i - 1] + send_counts[i - 1]) : 0;
-                send_counts[i] *= sizeof(double) * 2 + sizeof(size_t) + (fileIdx + 1) * sizeof(float);
+                send_counts[i] *= sizeof(double) * 2 + sizeof(size_t) + ncInputs * sizeof(float);
 
                 LOG4CPLUS_DEBUG(logger, world_rank << ": send_counts[0]=" << send_counts.get()[0] << " displ[0]=" << displs.get()[0]);
             }
+        }
 
+        if (fileIdx == 0) {
+            size_t time = wacommAdapter->Conc().Nx();
+            size_t depth = wacommAdapter->Conc().Ny();
+            size_t lat = wacommAdapter->Conc().Nz();
+            size_t lon = wacommAdapter->Conc().N4();
+
+            // Define the final predictions matrix
+            predictions.Allocate(time, lat, lon);
+            
+            // Set the predictions matrix to 0
+            #pragma omp parallel for collapse(3) default(none) shared(time, lat, lon, predictions)
+            for (int t=0; t<time; t++) {
+                for (int j=0; j<lat; j++) {
+                    for (int i=0; i<lon; i++) {
+                        predictions(t,j,i)=100;
+                    }
+                }
+            }
+        }
+
+        if (world_rank == 0) {
             // Serialize the data
             sendbuf.clear();
             for (int idx = 0; idx < nAreas; idx++) {
@@ -150,41 +152,40 @@ void AiquamPlusPlus::run() {
                 serialize(data, serialized_data);
                 sendbuf.insert(sendbuf.end(), serialized_data.begin(), serialized_data.end());
             }
-
+            
             LOG4CPLUS_DEBUG(logger, "sendbuf size: " << sendbuf.size());
         }
+    }
 
 #ifdef USE_MPI
-        // Broadcast the number of areas for each process
-        MPI_Bcast(send_counts.get(), world_size, MPI_INT, 0, MPI_COMM_WORLD);
-        MPI_Bcast(displs.get(), world_size, MPI_INT, 0, MPI_COMM_WORLD);
+    // Broadcast the number of areas for each process
+    MPI_Bcast(send_counts.get(), world_size, MPI_INT, 0, MPI_COMM_WORLD);
+    MPI_Bcast(displs.get(), world_size, MPI_INT, 0, MPI_COMM_WORLD);
 
-        // Calculate the size of data each process will receive
-        int recv_count = send_counts[world_rank];
-        recvbuf.resize(recv_count);
+    // Calculate the size of data each process will receive
+    int recv_count = send_counts[world_rank];
+    recvbuf.resize(recv_count);
 
-        // Distribute the data
-        MPI_Scatterv(sendbuf.data(), send_counts.get(), displs.get(), MPI_CHAR, recvbuf.data(), recv_count, MPI_CHAR, 0, MPI_COMM_WORLD);
+    // Distribute the data
+    MPI_Scatterv(sendbuf.data(), send_counts.get(), displs.get(), MPI_CHAR, recvbuf.data(), recv_count, MPI_CHAR, 0, MPI_COMM_WORLD);
 
-        // Deserialize the data
-        localAreas = std::make_unique<Areas>();
-        int num_local_areas = send_counts[world_rank] / (sizeof(double) * 2 + sizeof(size_t) + (fileIdx + 1) * sizeof(float));
-        size_t offset = 0;
-        for (int i = 0; i < num_local_areas; i++) {
-            std::vector<char> buffer(recvbuf.begin() + offset, recvbuf.begin() + offset + sizeof(double) * 2 + sizeof(size_t) + (fileIdx + 1) * sizeof(float));
-            area_data local_area;
-            deserialize(buffer, local_area);
-            Area area(local_area);
-            localAreas->push_back(area);
-            offset += sizeof(double) * 2 + sizeof(size_t) + local_area.values.size() * sizeof(float);
-        }
-
-        pLocalAreas = localAreas.get();
-#else
-        pLocalAreas = areas.get();
-        
-#endif
+    // Deserialize the data
+    localAreas = std::make_unique<Areas>();
+    int num_local_areas = send_counts[world_rank] / (sizeof(double) * 2 + sizeof(size_t) + ncInputs * sizeof(float));
+    size_t offset = 0;
+    for (int i = 0; i < num_local_areas; i++) {
+        std::vector<char> buffer(recvbuf.begin() + offset, recvbuf.begin() + offset + sizeof(double) * 2 + sizeof(size_t) + ncInputs * sizeof(float));
+        area_data local_area;
+        deserialize(buffer, local_area);
+        Area area(local_area);
+        localAreas->push_back(area);
+        offset += sizeof(double) * 2 + sizeof(size_t) + local_area.values.size() * sizeof(float);
     }
+
+    pLocalAreas = localAreas.get();
+#else
+    pLocalAreas = areas.get();
+#endif
 
     LOG4CPLUS_INFO(logger, world_rank << ": Local areas:" << pLocalAreas->size());
 
