@@ -6,6 +6,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 option(USE_MPI "Use MPI for distributed memory parallelism." OFF)
 option(USE_OMP "Use OMP for shared memory parallelism." OFF)
+option(USE_CUDA "Use CUDA acceleration." OFF)
 
 set(LIBMPI "")
 find_package(MPI)
@@ -24,6 +25,13 @@ if(OpenMP_CXX_FOUND AND USE_OMP)
     add_definitions(-DUSE_OMP)
     message(STATUS "Using OMP for shared memory parallelism.")
     set(LIBOMP OpenMP::OpenMP_CXX)
+endif()
+
+find_package(CUDA)
+if(CUDA_FOUND AND USE_CUDA)
+    message(STATUS "Use CUDA acceleration.")
+    message(STATUS "CUDA Version: ${CUDA_VERSION_STRING}")
+    add_definitions(-DUSE_CUDA)
 endif()
 
 # Include the support to external projects
@@ -66,8 +74,28 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
 endif()
 
 # ONNX Runtime
+set (ONNXRUNTIME_URL_BASE "https://github.com/microsoft/onnxruntime/releases/download")
+set (ONNXRUNTIME_VERSION "1.18.1")
+set (ONNXRUNTIME_CUDA_VERSION "12")
+if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+    if(USE_CUDA)
+        set(ONNXRUNTIME_URL ${ONNXRUNTIME_URL_BASE}/v${ONNXRUNTIME_VERSION}/onnxruntime-linux-x64-gpu-cuda${ONNXRUNTIME_CUDA_VERSION}-1.18.1.tgz)
+    else()
+        set(ONNXRUNTIME_URL ${ONNXRUNTIME_URL_BASE}/v${ONNXRUNTIME_VERSION}/onnxruntime-linux-x64-1.18.1.tgz)
+    endif()
+elseif(CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64")
+    set(ONNXRUNTIME_URL ${ONNXRUNTIME_URL_BASE}/v${ONNXRUNTIME_VERSION}/onnxruntime-linux-aarch64-1.18.1.tgz)
+elseif(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
+    if(CMAKE_SYSTEM_PROCESSOR STREQUAL "arm64")
+        set(ONNXRUNTIME_URL ${ONNXRUNTIME_URL_BASE}/v${ONNXRUNTIME_VERSION}/onnxruntime-osx-arm64-1.18.1.tgz)
+    elseif(CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64")
+        set(ONNXRUNTIME_URL ${ONNXRUNTIME_URL_BASE}/v${ONNXRUNTIME_VERSION}/onnxruntime-osx-x86_64-1.18.1.tgz)
+    else()
+        set(ONNXRUNTIME_URL ${ONNXRUNTIME_URL_BASE}/v${ONNXRUNTIME_VERSION}/onnxruntime-osx-universal2-1.18.1.tgz)
+    endif()
+endif()
 ExternalProject_Add(onnxruntime
-    URL https://github.com/microsoft/onnxruntime/releases/download/v1.18.1/onnxruntime-linux-x64-gpu-cuda12-1.18.1.tgz
+    URL ${ONNXRUNTIME_URL}
     TIMEOUT 360
     CONFIGURE_COMMAND ""
     BUILD_COMMAND ""
