@@ -54,8 +54,6 @@ void AiquamPlusPlus::run() {
     int world_size=1, world_rank=0, nAreas=0;
     int ncInputs = config->NcInputs().size();
 
-    Aiquam aiquam(config);
-
 #ifdef USE_OMP
     // Get the number of threads available for computation
     ompMaxThreads=omp_get_max_threads();
@@ -118,7 +116,7 @@ void AiquamPlusPlus::run() {
         for (int t=0; t<time; t++) {
             for (int j=0; j<lat; j++) {
                 for (int i=0; i<lon; i++) {
-                    predictions(t,j,i)=0;
+                    predictions(t,j,i)=100;
                 }
             }
         }
@@ -220,8 +218,10 @@ void AiquamPlusPlus::run() {
         thread_displs[tidx]=thread_counts[0]+areasPerThread*(tidx-1);
     }
 
-    #pragma omp parallel default(none) private(ompThreadNum) shared(world_rank, thread_counts, thread_displs, pLocalAreas, areasPerThread, aiquam, predictions)
+    #pragma omp parallel default(none) private(ompThreadNum) shared(world_rank, thread_counts, thread_displs, pLocalAreas, areasPerThread, predictions)
     {
+        Aiquam aiquam(config);
+
 #ifdef USE_OMP
         // Get the number of the current thread
         ompThreadNum = omp_get_thread_num();
@@ -239,6 +239,8 @@ void AiquamPlusPlus::run() {
 
             int predicted_class = aiquam.inference(pLocalAreas->at(idx).data().values);
             predictions(0, pLocalAreas->at(idx).data().j, pLocalAreas->at(idx).data().i) = predicted_class;
+            
+            LOG4CPLUS_DEBUG(logger, world_rank << ": ompThreadNum: " << ompThreadNum << ": idx: " << idx << ": i:" << pLocalAreas->at(idx).data().i << ", j: " << pLocalAreas->at(idx).data().j << ", prediction: " << predicted_class << std::endl);
         }
 #ifdef USE_OMP
         // Barrier to ensure all threads have finished processing
@@ -333,5 +335,6 @@ void AiquamPlusPlus::save(const string &fileName, shared_ptr<WacommAdapter> waco
     netCDF::NcVar predVar = dataFile.addVar("class_predict", netCDF::ncDouble, timeLatLon);
     predVar.putAtt("description","predicted class of concentration of pollutants in mussels");
     predVar.putAtt("long_name","class_predict");
+    predVar.putAtt("_FillValue", netCDF::ncDouble, 100);
     predVar.putVar(predictions());
 }

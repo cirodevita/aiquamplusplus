@@ -89,6 +89,7 @@ void Aiquam::runInference(Ort::Session& session, std::vector<float> input_data, 
 }
 
 int Aiquam::inference(std::vector<float> input_data) {
+    predictions.clear();
     size_t model_index = 0;
     for (auto& model : config->Models()) {
         LOG4CPLUS_DEBUG(logger, "Running inference with model: " + model.name);
