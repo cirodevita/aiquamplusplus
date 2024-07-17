@@ -15,7 +15,7 @@
 
 class Aiquam {
 public:
-    Aiquam(std::shared_ptr<Config>, int);
+    Aiquam(std::shared_ptr<Config>, int gpu_id = -1);
     ~Aiquam();
 
     int inference(std::vector<float>);

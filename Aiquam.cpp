@@ -6,16 +6,18 @@
 
 Aiquam::~Aiquam() = default;
 
-Aiquam::Aiquam(std::shared_ptr<Config> config, int gpu_id = -1): config(config), gpu_id(gpu_id) {
+Aiquam::Aiquam(std::shared_ptr<Config> config, int gpu_id): config(config), gpu_id(gpu_id) {
     logger = log4cplus::Logger::getInstance(LOG4CPLUS_TEXT("Aiquam"));
 
     session_options.SetIntraOpNumThreads(1);
     session_options.SetGraphOptimizationLevel(GraphOptimizationLevel::ORT_ENABLE_EXTENDED);
 
+#ifdef USE_CUDA
     if (gpu_id >= 0) {
       Ort::ThrowOnError(OrtSessionOptionsAppendExecutionProvider_CUDA(
           session_options, gpu_id));
     }
+#endif
 
     for (const auto& model : config->Models()) {
         const char* model_path_cstr = model.name.c_str();
