@@ -74,28 +74,28 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
 endif()
 
 # ONNX Runtime
-set (ONNXRUNTIME_URL_BASE "https://github.com/microsoft/onnxruntime/releases/download")
-set (ONNXRUNTIME_VERSION "1.18.1")
-set (ONNXRUNTIME_CUDA_VERSION "12")
+set(ONNXRUNTIME_URL_BASE "https://github.com/microsoft/onnxruntime/releases/download")
+set(ONNXRUNTIME_VERSION "1.18.1")
+set(ONNXRUNTIME_CUDA_VERSION "12")
+
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+    set(ONNXRUNTIME_PLATFORM "linux-x64")
     if(USE_CUDA)
-        set(ONNXRUNTIME_URL ${ONNXRUNTIME_URL_BASE}/v${ONNXRUNTIME_VERSION}/onnxruntime-linux-x64-gpu-cuda${ONNXRUNTIME_CUDA_VERSION}-1.18.1.tgz)
-    else()
-        set(ONNXRUNTIME_URL ${ONNXRUNTIME_URL_BASE}/v${ONNXRUNTIME_VERSION}/onnxruntime-linux-x64-1.18.1.tgz)
+        set(ONNXRUNTIME_PLATFORM "${ONNXRUNTIME_PLATFORM}-gpu-cuda${ONNXRUNTIME_CUDA_VERSION}")
     endif()
-elseif(CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64")
-    set(ONNXRUNTIME_URL ${ONNXRUNTIME_URL_BASE}/v${ONNXRUNTIME_VERSION}/onnxruntime-linux-aarch64-1.18.1.tgz)
 elseif(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
     if(CMAKE_SYSTEM_PROCESSOR STREQUAL "arm64")
-        set(ONNXRUNTIME_URL ${ONNXRUNTIME_URL_BASE}/v${ONNXRUNTIME_VERSION}/onnxruntime-osx-arm64-1.18.1.tgz)
+        set(ONNXRUNTIME_PLATFORM "osx-arm64")
     elseif(CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64")
-        set(ONNXRUNTIME_URL ${ONNXRUNTIME_URL_BASE}/v${ONNXRUNTIME_VERSION}/onnxruntime-osx-x86_64-1.18.1.tgz)
+        set(ONNXRUNTIME_PLATFORM "osx-x86_64")
     else()
-        set(ONNXRUNTIME_URL ${ONNXRUNTIME_URL_BASE}/v${ONNXRUNTIME_VERSION}/onnxruntime-osx-universal2-1.18.1.tgz)
+        set(ONNXRUNTIME_PLATFORM "osx-universal2")
     endif()
+elseif(CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64")
+    set(ONNXRUNTIME_PLATFORM "linux-aarch64")
 endif()
 ExternalProject_Add(onnxruntime
-    URL ${ONNXRUNTIME_URL}
+    URL ${ONNXRUNTIME_URL_BASE}/v${ONNXRUNTIME_VERSION}/onnxruntime-${ONNXRUNTIME_PLATFORM}-${ONNXRUNTIME_VERSION}.tgz
     TIMEOUT 360
     CONFIGURE_COMMAND ""
     BUILD_COMMAND ""
