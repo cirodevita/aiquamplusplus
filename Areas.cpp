@@ -13,7 +13,7 @@ bool Areas::isPointInPolygon(const area_data& p, const vector<area_data>& polygo
     size_t n = polygon.size();
     for (size_t i = 0, j = n - 1; i < n; j = i++) {
         if (((polygon[i].i > p.i) != (polygon[j].i > p.i)) &&
-            (p.j < (polygon[j].j - polygon[i].i) * (p.i - polygon[i].i) / (polygon[j].i - polygon[i].i) + polygon[i].j)) {
+            (p.j < (polygon[j].j - polygon[i].j) * (p.i - polygon[i].i) / (polygon[j].i - polygon[i].i) + polygon[i].j)) {
             inside = !inside;
         }
     }
@@ -87,10 +87,10 @@ void Areas::loadFromJson(const string &fileName, std::shared_ptr<WacommAdapter> 
                     maxJ = numeric_limits<double>::lowest();
 
                     for (const auto& point : polygon) {
-                        if (point.j < minI) minI = point.j;
-                        if (point.j > maxI) maxI = point.j;
-                        if (point.i < minJ) minJ = point.i;
-                        if (point.i > maxJ) maxJ = point.i;
+                        if (point.i < minI) minI = point.i;
+                        if (point.i > maxI) maxI = point.i;
+                        if (point.j < minJ) minJ = point.j;
+                        if (point.j > maxJ) maxJ = point.j;
                     }
 
                     LOG4CPLUS_DEBUG(logger, "Bounding box calculated: [" << minI << ", " << minJ << ", " << maxI << ", " << maxJ << "]");
