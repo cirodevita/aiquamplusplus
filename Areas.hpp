@@ -38,7 +38,7 @@ public:
 private:
     log4cplus::Logger logger;
 
-    bool isPointInPolygon(const Area& p, const vector<Area>& polygon);
+    bool isPointInPolygon(const area_data& p, const vector<area_data>& polygon);
 };
 
 #endif //AIQUAMPLUSPLUS_AREAS_HPP

@@ -8,12 +8,12 @@ Areas::Areas() {
     logger = log4cplus::Logger::getInstance(LOG4CPLUS_TEXT("Aiquam"));
 }
 
-bool Areas::isPointInPolygon(const Area& p, const vector<Area>& polygon) {
+bool Areas::isPointInPolygon(const area_data& p, const vector<area_data>& polygon) {
     bool inside = false;
     size_t n = polygon.size();
     for (size_t i = 0, j = n - 1; i < n; j = i++) {
-        if (((polygon[i].I() > p.I()) != (polygon[j].I() > p.I())) &&
-            (p.J() < (polygon[j].J() - polygon[i].J()) * (p.I() - polygon[i].I()) / (polygon[j].I() - polygon[i].I()) + polygon[i].J())) {
+        if (((polygon[i].i > p.i) != (polygon[j].i > p.i)) &&
+            (p.j < (polygon[j].j - polygon[i].i) * (p.i - polygon[i].i) / (polygon[j].i - polygon[i].i) + polygon[i].j)) {
             inside = !inside;
         }
     }
@@ -35,7 +35,7 @@ void Areas::loadFromJson(const string &fileName, std::shared_ptr<WacommAdapter> 
             for (auto feature:featureCollection["features"]) {
                 double minLon, minLat, maxLon, maxLat;
                 double minJ = 1e37, minI = 1e37, maxJ = 1e37, maxI = 1e37;
-                vector<Area> polygon;
+                vector<area_data> polygon;
                 bool bboxAvailable = false;
 
                 if (feature.contains("bbox") && feature["bbox"].is_array() && feature["bbox"].size() == 4) {
@@ -87,10 +87,10 @@ void Areas::loadFromJson(const string &fileName, std::shared_ptr<WacommAdapter> 
                     maxJ = numeric_limits<double>::lowest();
 
                     for (const auto& point : polygon) {
-                        if (point.J() < minI) minI = point.J();
-                        if (point.J() > maxI) maxI = point.J();
-                        if (point.I() < minJ) minJ = point.I();
-                        if (point.I() > maxJ) maxJ = point.I();
+                        if (point.j < minI) minI = point.j;
+                        if (point.j > maxI) maxI = point.j;
+                        if (point.i < minJ) minJ = point.i;
+                        if (point.i > maxJ) maxJ = point.i;
                     }
 
                     LOG4CPLUS_DEBUG(logger, "Bounding box calculated: [" << minI << ", " << minJ << ", " << maxI << ", " << maxJ << "]");
