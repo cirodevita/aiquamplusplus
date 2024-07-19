@@ -35,6 +35,8 @@ public:
 
     void loadFromJson(const string &fileName, std::shared_ptr<WacommAdapter> wacommAdapter);
 
+    bool isPointInPolygon(const Area& p, const vector<Area>& polygon);
+
 private:
     log4cplus::Logger logger;
 };
