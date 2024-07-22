@@ -100,7 +100,6 @@ void Areas::loadFromJson(const string &fileName, std::shared_ptr<WacommAdapter> 
                     LOG4CPLUS_INFO(logger, "Bounding box calculated: [" << minI << ", " << minJ << ", " << maxI << ", " << maxJ << "]");
                 }
 
-                #pragma omp parallel for collapse(2) default(none) shared(j, i)
                 for (int j = int(minJ); j <= int(maxJ); j++) {
                     for (int i = int(minI); i <= int(maxI); i++) {
                         if (mask(j, i) == 1) {
@@ -166,7 +165,6 @@ void Areas::loadFromShp(const string& fileName, std::shared_ptr<WacommAdapter> w
         double minI, minJ, maxI, maxJ;
         calculateBoundingBox(polygon, minJ, minI, maxJ, maxI);
 
-        #pragma omp parallel for collapse(2) default(none) shared(j, i)
         for (int j = int(minJ); j <= int(maxJ); j++) {
             for (int i = int(minI); i <= int(maxI); i++) {
                 if (mask(j, i) == 1) {
