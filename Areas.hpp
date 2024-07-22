@@ -9,9 +9,10 @@
 #include "log4cplus/configurator.h"
 #include "log4cplus/logger.h"
 #include "log4cplus/loggingmacros.h"
-
 #include <nlohmann/json.hpp>
 #include <fstream>
+#include <gdal_priv.h>
+#include <ogrsf_frmts.h>
 
 #include "Area.hpp"
 #include "WacommAdapter.hpp"
@@ -34,11 +35,13 @@ public:
     using vector::erase;
 
     void loadFromJson(const string &fileName, std::shared_ptr<WacommAdapter> wacommAdapter);
+    void loadFromShp(const string &fileName, std::shared_ptr<WacommAdapter> wacommAdapter);
 
 private:
     log4cplus::Logger logger;
 
     bool isPointInPolygon(const area_data& p, const vector<area_data>& polygon);
+    void calculateBoundingBox(const vector<area_data>& polygon, double& minI, double& minJ, double& maxI, double& maxJ);
 };
 
 #endif //AIQUAMPLUSPLUS_AREAS_HPP

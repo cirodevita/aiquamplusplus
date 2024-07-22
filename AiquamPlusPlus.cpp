@@ -112,8 +112,10 @@ void AiquamPlusPlus::run() {
 
             if (fileName.substr(fileName.find_last_of('.') + 1) == "json") {
                 areas->loadFromJson(fileName, wacommAdapter);
-                nAreas = areas->size();
+            } else if (fileName.substr(fileName.find_last_of('.') + 1) == "shp"){
+                areas->loadFromShp(fileName, wacommAdapter);
             }
+            nAreas = areas->size();
 
             // Calculate the number of areas for each process
             size_t areasPerProcess = nAreas / world_size;

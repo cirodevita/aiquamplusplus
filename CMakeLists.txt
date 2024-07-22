@@ -232,6 +232,46 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
     set(LIBNETCDFCXX ${EXTERNAL_INSTALL_LOCATION}/lib/libnetcdf_c++4.dylib)
 endif()
 
+# SQlite3
+ExternalProject_Add(sqlite3
+    URL http://sqlite.org/2016/sqlite-autoconf-3110000.tar.gz
+    TIMEOUT 360
+    BUILD_IN_SOURCE 1
+    CONFIGURE_COMMAND ./configure --prefix=${EXTERNAL_INSTALL_LOCATION} CFLAGS=-fPIC CPPFLAGS=-I${EXTERNAL_INSTALL_LOCATION}/include/ LDFLAGS=-L${EXTERNAL_INSTALL_LOCATION}/lib/
+    BUILD_COMMAND make
+    INSTALL_COMMAND make install
+)
+set(SQLITE3_LIBRARY ${EXTERNAL_INSTALL_LOCATION}/lib/libsqlite3.a)
+if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
+    set(SQLITE3_LIBRARY ${EXTERNAL_INSTALL_LOCATION}/lib/libsqlite3.dylib)
+endif()
+
+# PROJ
+ExternalProject_Add(proj
+    URL https://download.osgeo.org/proj/proj-9.0.1.tar.gz
+    TIMEOUT 360
+    CONFIGURE_COMMAND ""
+    BUILD_COMMAND ${CMAKE_COMMAND} -S ${CMAKE_BINARY_DIR}/proj-prefix/src/proj -B ${CMAKE_BINARY_DIR}/proj-prefix/src/proj/build -DCMAKE_INSTALL_PREFIX=${EXTERNAL_INSTALL_LOCATION} -DENABLE_TIFF=OFF -DSQLITE3_LIBRARY=${SQLITE3_LIBRARY} -DSQLITE3_INCLUDE_DIR=${EXTERNAL_INSTALL_LOCATION}/include -DCURL_LIBRARY=${LIBCURL} -DCURL_INCLUDE_DIR=${EXTERNAL_INSTALL_LOCATION}/include
+    INSTALL_COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR}/proj-prefix/src/proj/build --target install
+)
+set(LIBPROJ ${EXTERNAL_INSTALL_LOCATION}/lib/libproj.a)
+if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
+    set(LIBPROJ ${EXTERNAL_INSTALL_LOCATION}/lib/libproj.dylib)
+endif()
+
+# GDAL
+ExternalProject_Add(gdal
+    URL https://github.com/OSGeo/gdal/releases/download/v3.8.3/gdal-3.8.3.tar.gz
+    TIMEOUT 360
+    CONFIGURE_COMMAND ""
+    BUILD_COMMAND ${CMAKE_COMMAND} -S ${CMAKE_BINARY_DIR}/gdal-prefix/src/gdal -B ${CMAKE_BINARY_DIR}/gdal-prefix/src/gdal/build -DCMAKE_INSTALL_PREFIX=${EXTERNAL_INSTALL_LOCATION} -DSQLITE3_LIBRARY=${SQLITE3_LIBRARY} -DSQLITE3_INCLUDE_DIR=${EXTERNAL_INSTALL_LOCATION}/include -DCURL_LIBRARY=${LIBCURL} -DCURL_INCLUDE_DIR=${EXTERNAL_INSTALL_LOCATION}/include -DPROJ_INCLUDE_DIR=${EXTERNAL_INSTALL_LOCATION}/include -DPROJ_LIBRARY_RELEASE=${LIBPROJ} -DBUILD_PYTHON_BINDINGS=OFF -DCMAKE_DISABLE_FIND_PACKAGE_Arrow=ON -DGDAL_USE_LIBKML=OFF -DGDAL_USE_EXPAT=OFF
+    INSTALL_COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR}/gdal-prefix/src/gdal/build --target install
+)
+set(LIBGDAL ${EXTERNAL_INSTALL_LOCATION}/lib/libgdal.a)
+if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
+    set(LIBGDAL ${EXTERNAL_INSTALL_LOCATION}/lib/libgdal.dylib)
+endif()
+
 add_executable(${PROJECT_NAME} main.cpp Array.h Config.cpp Config.hpp AiquamPlusPlus.cpp AiquamPlusPlus.hpp WacommAdapter.cpp WacommAdapter.hpp Aiquam.cpp Aiquam.hpp Areas.cpp Areas.hpp Area.cpp Area.hpp)
 
 # Explicit the dependencies
@@ -240,6 +280,8 @@ add_dependencies(curl zlib)
 add_dependencies(hdf5 curl)
 add_dependencies(netcdf hdf5)
 add_dependencies(netcdfcxx netcdf)
-add_dependencies(${PROJECT_NAME} log4cplus onnxruntime netcdfcxx)
+add_dependencies(proj sqlite3)
+add_dependencies(gdal proj)
+add_dependencies(${PROJECT_NAME} log4cplus onnxruntime netcdfcxx gdal)
 
-target_link_libraries(${PROJECT_NAME} pthread dl nlohmann_json::nlohmann_json ${LIBOMP} ${LIBMPI} ${ONNXRUNTIME} ${LIBNETCDFCXX} ${LIBNETCDF} ${LIBCURL} ${LIBHDF5} ${LIBZLIB} ${LIBSZLIB} ${LIBLOG4CPLUS} ${CUDART_LIBRARY})
+target_link_libraries(${PROJECT_NAME} pthread dl nlohmann_json::nlohmann_json ${LIBOMP} ${LIBMPI} ${ONNXRUNTIME} ${LIBNETCDFCXX} ${LIBNETCDF} ${LIBCURL} ${LIBHDF5} ${LIBZLIB} ${LIBSZLIB} ${LIBLOG4CPLUS} ${CUDART_LIBRARY} ${LIBGDAL})
