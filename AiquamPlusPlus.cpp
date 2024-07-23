@@ -116,6 +116,7 @@ void AiquamPlusPlus::run() {
                 areas->loadFromShp(fileName, wacommAdapter);
             }
             nAreas = areas->size();
+            LOG4CPLUS_INFO(logger, "nAreas: " << nAreas);
 
             // Calculate the number of areas for each process
             size_t areasPerProcess = nAreas / world_size;

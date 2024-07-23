@@ -11,8 +11,8 @@
 #include "log4cplus/loggingmacros.h"
 #include <nlohmann/json.hpp>
 #include <fstream>
-#include <gdal_priv.h>
-#include <ogrsf_frmts.h>
+
+#include "shapefil.h"
 
 #include "Area.hpp"
 #include "WacommAdapter.hpp"

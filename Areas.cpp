@@ -6,7 +6,6 @@
 
 Areas::Areas() {
     logger = log4cplus::Logger::getInstance(LOG4CPLUS_TEXT("Aiquam"));
-    GDALAllRegister();
 }
 
 bool Areas::isPointInPolygon(const area_data& p, const vector<area_data>& polygon) {
@@ -109,7 +108,6 @@ void Areas::loadFromJson(const string &fileName, std::shared_ptr<WacommAdapter> 
                         }
                     }
                 }
-                break;
             }
         }
 
@@ -121,36 +119,30 @@ void Areas::loadFromJson(const string &fileName, std::shared_ptr<WacommAdapter> 
 void Areas::loadFromShp(const string& fileName, std::shared_ptr<WacommAdapter> wacommAdapter) {
     LOG4CPLUS_INFO(logger, "Reading from shapefile:" << fileName);
 
-    GDALDataset* poDS = (GDALDataset*) GDALOpenEx(fileName.c_str(), GDAL_OF_VECTOR, nullptr, nullptr, nullptr);
-    if (poDS == nullptr) {
+    SHPHandle hSHP = SHPOpen(fileName.c_str(), "rb");
+    if (hSHP == nullptr) {
         LOG4CPLUS_ERROR(logger, "Unable to open shapefile: " << fileName);
         return;
     }
 
-    OGRLayer* poLayer = poDS->GetLayer(0);
-    if (poLayer == nullptr) {
-        LOG4CPLUS_ERROR(logger, "Unable to get layer from shapefile: " << fileName);
-        GDALClose(poDS);
-        return;
-    }
+    int nEntities, nShapeType;
+    double adfMinBound[4], adfMaxBound[4];
+
+    SHPGetInfo(hSHP, &nEntities, &nShapeType, adfMinBound, adfMaxBound);
 
     Array::Array2 mask = wacommAdapter->Mask();
 
-    OGRFeature* poFeature;
-    poLayer->ResetReading();
-    while ((poFeature = poLayer->GetNextFeature()) != nullptr) {
-        OGRGeometry* poGeometry = poFeature->GetGeometryRef();
-        if (poGeometry == nullptr || wkbFlatten(poGeometry->getGeometryType()) != wkbPolygon) {
-            OGRFeature::DestroyFeature(poFeature);
+    for (int i = 0; i < nEntities; i++) {
+        SHPObject* psShape = SHPReadObject(hSHP, i);
+        if (psShape == nullptr || psShape->nSHPType != SHPT_POLYGON) {
+            SHPDestroyObject(psShape);
             continue;
         }
 
         vector<area_data> polygon;
-        OGRPolygon* poPolygon = (OGRPolygon*) poGeometry;
-        OGRLinearRing* poRing = poPolygon->getExteriorRing();
-        for (int i = 0; i < poRing->getNumPoints(); i++) {
-            double lat = poRing->getY(i);
-            double lon = poRing->getX(i);
+        for (int j = 0; j < psShape->nVertices; j++) {
+            double lat = psShape->padfY[j];
+            double lon = psShape->padfX[j];
 
             double pJ, pI;
             wacommAdapter->latlon2ji(lat, lon, pJ, pI);
@@ -158,7 +150,7 @@ void Areas::loadFromShp(const string& fileName, std::shared_ptr<WacommAdapter> w
         }
 
         if (polygon.empty()) {
-            OGRFeature::DestroyFeature(poFeature);
+            SHPDestroyObject(psShape);
             continue;
         }
 
@@ -175,10 +167,10 @@ void Areas::loadFromShp(const string& fileName, std::shared_ptr<WacommAdapter> w
             }
         }
 
-        OGRFeature::DestroyFeature(poFeature);
+        SHPDestroyObject(psShape);
     }
 
-    GDALClose(poDS);
+    SHPClose(hSHP);
 }
 
 Areas::~Areas() = default;

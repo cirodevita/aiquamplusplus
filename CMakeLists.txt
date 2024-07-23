@@ -56,20 +56,19 @@ if(CUDA_FOUND AND USE_CUDA)
 	add_definitions(-DUSE_CUDA)
     
 	set(CUDA_ARCH_BIN ${__CUDA_ARCH_BIN} CACHE STRING "Specify 'real' GPU architectures to build binaries for")
-    	
     	if(POLICY CMP0104)
 		set(CMAKE_CUDA_ARCHITECTURES ${CUDA_ARCH_BIN})
     		message(STATUS "CUDA Architectures: ${CMAKE_CUDA_ARCHITECTURES}")
 	else()
 		# Generate SASS
-    		set(CMAKE_CUDA_ARCHITECTURES ${CUDA_ARCH_BIN})
-    		# Generate PTX for last architecture
-    		list(GET CUDA_ARCH_BIN -1 ver)
-    		set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -gencode arch=compute_${ver},code=compute_${ver}")
-    		message(STATUS "CMAKE_CUDA_FLAGS: ${CMAKE_CUDA_FLAGS}")
-    
-    		add_library(pcl_cuda INTERFACE)
-    		target_include_directories(pcl_cuda INTERFACE ${CUDA_TOOLKIT_INCLUDE})
+        set(CMAKE_CUDA_ARCHITECTURES ${CUDA_ARCH_BIN})
+        # Generate PTX for last architecture
+        list(GET CUDA_ARCH_BIN -1 ver)
+        set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -gencode arch=compute_${ver},code=compute_${ver}")
+        message(STATUS "CMAKE_CUDA_FLAGS: ${CMAKE_CUDA_FLAGS}")
+
+        add_library(pcl_cuda INTERFACE)
+        target_include_directories(pcl_cuda INTERFACE ${CUDA_TOOLKIT_INCLUDE})
 	endif()
 
     include_directories(${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
@@ -159,7 +158,7 @@ ExternalProject_Add(szlib
     BUILD_COMMAND make
     INSTALL_COMMAND make install
 )
-set(LIBSZLIB ${EXTERNAL_INSTALL_LOCATION}/lib/libsz.a)
+set(LIBSZLIB ${EXTERNAL_INSTALL_LOCATION}/lib/libsz.so)
 if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
     set(LIBSZLIB ${EXTERNAL_INSTALL_LOCATION}/lib/libsz.dylib)
 endif()
@@ -173,7 +172,7 @@ ExternalProject_Add(zlib
     BUILD_COMMAND make
     INSTALL_COMMAND make install
 )
-set(LIBZLIB ${EXTERNAL_INSTALL_LOCATION}/lib/libz.a)
+set(LIBZLIB ${EXTERNAL_INSTALL_LOCATION}/lib/libz.so)
 if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
     set(LIBZLIB ${EXTERNAL_INSTALL_LOCATION}/lib/libz.dylib)
 endif()
@@ -187,7 +186,7 @@ ExternalProject_Add(curl
     BUILD_COMMAND make
     INSTALL_COMMAND make install
 )
-set(LIBCURL ${EXTERNAL_INSTALL_LOCATION}/lib/libcurl.a)
+set(LIBCURL ${EXTERNAL_INSTALL_LOCATION}/lib/libcurl.so)
 if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
     set(LIBCURL ${EXTERNAL_INSTALL_LOCATION}/lib/libcurl.dylib)
 endif()
@@ -201,7 +200,7 @@ ExternalProject_Add(hdf5
     BUILD_COMMAND make
     INSTALL_COMMAND make install
 )
-set(LIBHDF5 ${EXTERNAL_INSTALL_LOCATION}/lib/libhdf5_hl.a;${EXTERNAL_INSTALL_LOCATION}/lib/libhdf5.a)
+set(LIBHDF5 ${EXTERNAL_INSTALL_LOCATION}/lib/libhdf5_hl.so;${EXTERNAL_INSTALL_LOCATION}/lib/libhdf5.so)
 if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
     set(LIBHDF5 ${EXTERNAL_INSTALL_LOCATION}/lib/libhdf5.dylib)
 endif()
@@ -214,7 +213,7 @@ ExternalProject_Add(netcdf
     CONFIGURE_COMMAND ./configure CFLAGS=-fPIC CPPFLAGS=-I${EXTERNAL_INSTALL_LOCATION}/include/ LDFLAGS=-L${EXTERNAL_INSTALL_LOCATION}/lib/ --prefix=${EXTERNAL_INSTALL_LOCATION}  --enable-shared --enable-netcdf-4 --enable-dap --enable-byterange --enable-erange-fill
     INSTALL_COMMAND make install
 )
-set(LIBNETCDF ${EXTERNAL_INSTALL_LOCATION}/lib/libnetcdf.a)
+set(LIBNETCDF ${EXTERNAL_INSTALL_LOCATION}/lib/libnetcdf.so)
 if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
     set(LIBNETCDF ${EXTERNAL_INSTALL_LOCATION}/lib/libnetcdf.dylib)
 endif()
@@ -227,49 +226,22 @@ ExternalProject_Add(netcdfcxx
     CONFIGURE_COMMAND ./configure LIBS=${NETCDFCXXLIBS_PARAMS} CFLAGS=-fPIC CPPFLAGS=-I${EXTERNAL_INSTALL_LOCATION}/include/ LDFLAGS=-L${EXTERNAL_INSTALL_LOCATION}/lib/ --prefix=${EXTERNAL_INSTALL_LOCATION}   --enable-shared
     INSTALL_COMMAND make install
 )
-set(LIBNETCDFCXX ${EXTERNAL_INSTALL_LOCATION}/lib/libnetcdf_c++4.a)
+set(LIBNETCDFCXX ${EXTERNAL_INSTALL_LOCATION}/lib/libnetcdf_c++4.so)
 if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
     set(LIBNETCDFCXX ${EXTERNAL_INSTALL_LOCATION}/lib/libnetcdf_c++4.dylib)
 endif()
 
-# SQlite3
-ExternalProject_Add(sqlite3
-    URL http://sqlite.org/2016/sqlite-autoconf-3110000.tar.gz
+# shapelib
+ExternalProject_Add(shapelib
+    URL http://download.osgeo.org/shapelib/shapelib-1.6.0.tar.gz
     TIMEOUT 360
     BUILD_IN_SOURCE 1
     CONFIGURE_COMMAND ./configure --prefix=${EXTERNAL_INSTALL_LOCATION} CFLAGS=-fPIC CPPFLAGS=-I${EXTERNAL_INSTALL_LOCATION}/include/ LDFLAGS=-L${EXTERNAL_INSTALL_LOCATION}/lib/
-    BUILD_COMMAND make
     INSTALL_COMMAND make install
 )
-set(SQLITE3_LIBRARY ${EXTERNAL_INSTALL_LOCATION}/lib/libsqlite3.a)
+set(LIBSHP ${EXTERNAL_INSTALL_LOCATION}/lib/libshp.so)
 if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
-    set(SQLITE3_LIBRARY ${EXTERNAL_INSTALL_LOCATION}/lib/libsqlite3.dylib)
-endif()
-
-# PROJ
-ExternalProject_Add(proj
-    URL https://download.osgeo.org/proj/proj-9.0.1.tar.gz
-    TIMEOUT 360
-    CONFIGURE_COMMAND ""
-    BUILD_COMMAND ${CMAKE_COMMAND} -S ${CMAKE_BINARY_DIR}/proj-prefix/src/proj -B ${CMAKE_BINARY_DIR}/proj-prefix/src/proj/build -DCMAKE_INSTALL_PREFIX=${EXTERNAL_INSTALL_LOCATION} -DENABLE_TIFF=OFF -DSQLITE3_LIBRARY=${SQLITE3_LIBRARY} -DSQLITE3_INCLUDE_DIR=${EXTERNAL_INSTALL_LOCATION}/include -DCURL_LIBRARY=${LIBCURL} -DCURL_INCLUDE_DIR=${EXTERNAL_INSTALL_LOCATION}/include
-    INSTALL_COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR}/proj-prefix/src/proj/build --target install
-)
-set(LIBPROJ ${EXTERNAL_INSTALL_LOCATION}/lib/libproj.a)
-if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
-    set(LIBPROJ ${EXTERNAL_INSTALL_LOCATION}/lib/libproj.dylib)
-endif()
-
-# GDAL
-ExternalProject_Add(gdal
-    URL https://github.com/OSGeo/gdal/releases/download/v3.8.3/gdal-3.8.3.tar.gz
-    TIMEOUT 360
-    CONFIGURE_COMMAND ""
-    BUILD_COMMAND ${CMAKE_COMMAND} -S ${CMAKE_BINARY_DIR}/gdal-prefix/src/gdal -B ${CMAKE_BINARY_DIR}/gdal-prefix/src/gdal/build -DCMAKE_INSTALL_PREFIX=${EXTERNAL_INSTALL_LOCATION} -DSQLITE3_LIBRARY=${SQLITE3_LIBRARY} -DSQLITE3_INCLUDE_DIR=${EXTERNAL_INSTALL_LOCATION}/include -DCURL_LIBRARY=${LIBCURL} -DCURL_INCLUDE_DIR=${EXTERNAL_INSTALL_LOCATION}/include -DPROJ_INCLUDE_DIR=${EXTERNAL_INSTALL_LOCATION}/include -DPROJ_LIBRARY_RELEASE=${LIBPROJ} -DBUILD_PYTHON_BINDINGS=OFF -DCMAKE_DISABLE_FIND_PACKAGE_Arrow=ON -DGDAL_USE_LIBKML=OFF -DGDAL_USE_EXPAT=OFF
-    INSTALL_COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR}/gdal-prefix/src/gdal/build --target install
-)
-set(LIBGDAL ${EXTERNAL_INSTALL_LOCATION}/lib/libgdal.a)
-if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
-    set(LIBGDAL ${EXTERNAL_INSTALL_LOCATION}/lib/libgdal.dylib)
+    set(LIBSHP ${EXTERNAL_INSTALL_LOCATION}/lib/libshp.dylib)
 endif()
 
 add_executable(${PROJECT_NAME} main.cpp Array.h Config.cpp Config.hpp AiquamPlusPlus.cpp AiquamPlusPlus.hpp WacommAdapter.cpp WacommAdapter.hpp Aiquam.cpp Aiquam.hpp Areas.cpp Areas.hpp Area.cpp Area.hpp)
@@ -280,8 +252,6 @@ add_dependencies(curl zlib)
 add_dependencies(hdf5 curl)
 add_dependencies(netcdf hdf5)
 add_dependencies(netcdfcxx netcdf)
-add_dependencies(proj sqlite3)
-add_dependencies(gdal proj)
-add_dependencies(${PROJECT_NAME} log4cplus onnxruntime netcdfcxx gdal)
+add_dependencies(${PROJECT_NAME} log4cplus onnxruntime netcdfcxx shapelib)
 
-target_link_libraries(${PROJECT_NAME} pthread dl nlohmann_json::nlohmann_json ${LIBOMP} ${LIBMPI} ${ONNXRUNTIME} ${LIBNETCDFCXX} ${LIBNETCDF} ${LIBCURL} ${LIBHDF5} ${LIBZLIB} ${LIBSZLIB} ${LIBLOG4CPLUS} ${CUDART_LIBRARY} ${LIBGDAL})
+target_link_libraries(${PROJECT_NAME} ${LIBOMP} ${LIBMPI} ${CUDART_LIBRARY} nlohmann_json::nlohmann_json ${LIBLOG4CPLUS} ${ONNXRUNTIME} ${LIBHDF5} ${LIBNETCDF} ${LIBNETCDFCXX} ${LIBSHP})
