@@ -220,11 +220,13 @@ endif()
 
 # netcdfcxx
 ExternalProject_Add(netcdfcxx
-    URL https://downloads.unidata.ucar.edu/netcdf-cxx/4.3.1/netcdf-cxx4-4.3.1.tar.gz
+    GIT_REPOSITORY https://github.com/Unidata/netcdf-cxx4.git
     TIMEOUT 360
     BUILD_IN_SOURCE 1
-    CONFIGURE_COMMAND ./configure LIBS=${NETCDFCXXLIBS_PARAMS} CFLAGS=-fPIC CPPFLAGS=-I${EXTERNAL_INSTALL_LOCATION}/include/ LDFLAGS=-L${EXTERNAL_INSTALL_LOCATION}/lib/ --prefix=${EXTERNAL_INSTALL_LOCATION}   --enable-shared
+    CONFIGURE_COMMAND ${CMAKE_COMMAND} -E chdir <SOURCE_DIR> autoreconf -i && ./configure LIBS=${NETCDFCXXLIBS_PARAMS} CFLAGS=-fPIC CPPFLAGS=-I${EXTERNAL_INSTALL_LOCATION}/include/ LDFLAGS=-L${EXTERNAL_INSTALL_LOCATION}/lib/ --prefix=${EXTERNAL_INSTALL_LOCATION} --enable-shared
+    BUILD_COMMAND make
     INSTALL_COMMAND make install
+    UPDATE_COMMAND ""
 )
 set(LIBNETCDFCXX ${EXTERNAL_INSTALL_LOCATION}/lib/libnetcdf_c++4.so)
 if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
