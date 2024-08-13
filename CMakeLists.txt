@@ -116,8 +116,8 @@ endif()
 
 # ONNX Runtime
 set(ONNXRUNTIME_URL_BASE "https://github.com/microsoft/onnxruntime/releases/download")
-set(ONNXRUNTIME_VERSION "1.18.1")
-set(ONNXRUNTIME_CUDA_VERSION "12")
+set(ONNXRUNTIME_VERSION "1.18.1" CACHE STRING "Version of ONNX Runtime to use")
+set(ONNXRUNTIME_CUDA_VERSION "12" CACHE STRING "CUDA version to use with ONNX Runtime")
 
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
     set(ONNXRUNTIME_PLATFORM "linux-x64")
