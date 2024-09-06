@@ -14,7 +14,7 @@ AiquamPlusPlus::AiquamPlusPlus(std::shared_ptr<Config> config): config(config) {
 
 // Function to serialize the struct into a buffer
 void AiquamPlusPlus::serialize(const area_data& data, std::vector<char>& buffer) {
-    size_t total_size = sizeof(data.i) + sizeof(data.j) + sizeof(size_t) + data.values.size() * sizeof(float);
+    size_t total_size = sizeof(data.i) + sizeof(data.j) + sizeof(size_t) + data.values.size() * sizeof(float) + sizeof(data.prediction);
     buffer.resize(total_size);
     char* ptr = buffer.data();
 
@@ -29,6 +29,9 @@ void AiquamPlusPlus::serialize(const area_data& data, std::vector<char>& buffer)
     ptr += sizeof(vec_size);
 
     memcpy(ptr, data.values.data(), vec_size * sizeof(float));
+    ptr += vec_size * sizeof(float);
+
+    memcpy(ptr, &data.prediction, sizeof(data.prediction));
 }
 
 // Function to deserialize the buffer back into the struct
@@ -47,6 +50,9 @@ void AiquamPlusPlus::deserialize(const std::vector<char>& buffer, area_data& dat
 
     data.values.resize(vec_size);
     memcpy(data.values.data(), ptr, vec_size * sizeof(float));
+    ptr += vec_size * sizeof(float);
+
+    memcpy(&data.prediction, ptr, sizeof(data.prediction));
 }
 
 void AiquamPlusPlus::run() {
@@ -95,6 +101,10 @@ void AiquamPlusPlus::run() {
 
     shared_ptr<WacommAdapter> wacommAdapter;
 
+    Array::Array3<int> predictions;
+
+    size_t serialized_size = sizeof(double) * 2 + sizeof(size_t) + ncInputs * sizeof(float) + sizeof(int);
+
     for (int fileIdx = 0; fileIdx < ncInputs; ++fileIdx) {
         std::string& ncInput = config->NcInputs()[fileIdx];
 
@@ -123,9 +133,26 @@ void AiquamPlusPlus::run() {
                 for (int i = 0; i < world_size; i++) {
                     send_counts[i] = areasPerProcess + (i < spare ? 1 : 0);
                     displs[i] = (i > 0) ? (displs[i - 1] + send_counts[i - 1]) : 0;
-                    send_counts[i] *= sizeof(double) * 2 + sizeof(size_t) + ncInputs * sizeof(float);
+                    send_counts[i] *= serialized_size;
 
                     LOG4CPLUS_DEBUG(logger, world_rank << ": send_counts[0]=" << send_counts.get()[0] << " displ[0]=" << displs.get()[0]);
+                }
+
+                size_t time = wacommAdapter->Conc().Nx();
+                size_t lat = wacommAdapter->Conc().Nz();
+                size_t lon = wacommAdapter->Conc().N4();
+
+                // Define the final predictions matrix
+                predictions.Allocate(time, lat, lon);
+                
+                // Set the predictions matrix to 0
+                #pragma omp parallel for collapse(3) default(none) shared(time, lat, lon, predictions)
+                for (int t=0; t<time; t++) {
+                    for (int j=0; j<lat; j++) {
+                        for (int i=0; i<lon; i++) {
+                            predictions(t,j,i)=100;
+                        }
+                    }
                 }
             }
 
@@ -139,6 +166,7 @@ void AiquamPlusPlus::run() {
                 data.i = area.I();
                 data.j = area.J();
                 data.values = area.Values();
+                data.prediction = -1;
 
                 std::vector<char> serialized_data;
                 serialize(data, serialized_data);
@@ -163,10 +191,10 @@ void AiquamPlusPlus::run() {
 
     // Deserialize the data
     localAreas = std::make_unique<Areas>();
-    int num_local_areas = send_counts[world_rank] / (sizeof(double) * 2 + sizeof(size_t) + ncInputs * sizeof(float) + sizeof(int));
+    int num_local_areas = send_counts[world_rank] / serialized_size;
     size_t offset = 0;
     for (int i = 0; i < num_local_areas; i++) {
-        std::vector<char> buffer(recvbuf.begin() + offset, recvbuf.begin() + offset + sizeof(double) * 2 + sizeof(size_t) + ncInputs * sizeof(float) + sizeof(int));
+        std::vector<char> buffer(recvbuf.begin() + offset, recvbuf.begin() + offset + serialized_size);
 
         area_data local_area;
         deserialize(buffer, local_area);
@@ -174,7 +202,7 @@ void AiquamPlusPlus::run() {
         Area area(local_area);
         localAreas->push_back(area);
 
-        offset += sizeof(double) * 2 + sizeof(size_t) + local_area.values.size() * sizeof(float) + sizeof(int);
+        offset += serialized_size;
     }
 
     pLocalAreas = localAreas.get();
@@ -214,7 +242,7 @@ void AiquamPlusPlus::run() {
         thread_displs[tidx]=thread_counts[0]+areasPerThread*(tidx-1);
     }
 
-    #pragma omp parallel default(none) private(ompThreadNum) shared(world_rank, thread_counts, thread_displs, pLocalAreas, areasPerThread, num_gpus)
+    #pragma omp parallel default(none) private(ompThreadNum) shared(world_rank, thread_counts, thread_displs, pLocalAreas, areasPerThread, num_gpus, serialized_size, recvbuf, localAreas)
     {
 #ifdef USE_CUDA
         Aiquam aiquam(config, (world_rank+ompThreadNum)%num_gpus);
@@ -240,6 +268,13 @@ void AiquamPlusPlus::run() {
             //std::vector<float> values = {494.79931640625,504.8264465332031,454.9320983886719,397.55279541015625,341.72088623046875,349.1586303710937,348.7724914550781,324.2787780761719,333.1670227050781,362.272216796875,396.6249084472656,430.06976318359375,484.9303894042969,453.0697021484375,477.3464965820313,434.7988586425781,531.5578002929688,344.17449951171875,225.81866455078125,314.5093078613281,322.84539794921875,301.417236328125,309.225830078125,282.3187866210937,268.01959228515625,289.224365234375,312.3394775390625,275.701904296875,247.72433471679688,233.9879608154297,235.0616607666016,181.0559539794922,201.79379272460935,225.74411010742188,247.97442626953125,247.18331909179688,274.9723205566406,280.5320739746094,268.0481262207031,194.05596923828125,224.49575805664065,137.5928955078125,101.20760345458984,231.069580078125,375.4364318847656,407.2272644042969,442.3384094238281,413.7304382324219,393.2890625,433.6060791015625,470.7800903320313,514.7785034179688,556.407470703125,598.1444091796875,575.6135864257812,438.1578979492188,337.7201538085937,336.3081970214844,329.26397705078125,323.6751708984375,329.8407592773437,328.40216064453125,327.1003723144531,270.5162658691406,240.3106689453125,253.34133911132807,212.14730834960935,300.3067626953125,396.8921813964844,463.1541137695313,539.9480590820312,608.8101196289062,591.9304809570312,2.0};
             std::vector<float> values = pLocalAreas->at(idx).data().values;
             int predicted_class = aiquam.inference(values);
+            localAreas->at(idx).Prediction(predicted_class);
+
+            std::vector<char> updated_buffer;
+            serialize(localAreas->at(idx).data(), updated_buffer);
+
+            size_t offset = thread_displs[ompThreadNum] + idx * serialized_size;
+            std::copy(updated_buffer.begin(), updated_buffer.end(), recvbuf.begin() + offset);
             
             LOG4CPLUS_DEBUG(logger, world_rank << ": ompThreadNum: " << ompThreadNum << ": idx: " << idx << ": i:" << pLocalAreas->at(idx).data().i << ", j: " << pLocalAreas->at(idx).data().j << ", prediction: " << predicted_class << std::endl);
         }
@@ -251,11 +286,46 @@ void AiquamPlusPlus::run() {
     }
 
 #ifdef USE_MPI
-    // Barrier to ensure all processes have finished
-    MPI_Barrier(MPI_COMM_WORLD);
-#else
+    std::vector<int> recv_sizes(world_size);
+    MPI_Gather(&recv_count, 1, MPI_INT, recv_sizes.data(), 1, MPI_INT, 0, MPI_COMM_WORLD);
 
+    if (world_rank == 0) {
+    int total_size = std::accumulate(recv_sizes.begin(), recv_sizes.end(), 0);
+        sendbuf.resize(total_size);
+    }
+
+    MPI_Gatherv(recvbuf.data(), recv_count, MPI_CHAR, 
+            sendbuf.data(), recv_sizes.data(), displs.get(), MPI_CHAR, 
+            0, MPI_COMM_WORLD);
+
+    if (world_rank == 0) {
+        size_t offset = 0;
+        for (int i = 0; i < world_size; ++i) {
+            for (int j = 0; j < recv_sizes[i] / serialized_size; ++j) {
+                std::vector<char> buffer(sendbuf.begin() + offset, sendbuf.begin() + offset + serialized_size);
+                area_data area;
+                deserialize(buffer, area);
+                offset += serialized_size;
+
+                predictions(0, area.j, area.i) = area.prediction;
+            }
+        }
+    }
+# else
+    for (size_t idx = 0; idx < pLocalAreas->size(); idx++) {
+        predictions(0, pLocalAreas->at(idx).J(), pLocalAreas->at(idx).I()) = pLocalAreas->at(idx).Prediction();
+    }
 #endif
+
+    if (world_rank == 0) {
+        // Create the output filename
+        string ncOutputFilename=config->NcOutputRoot()+config->Date()+".nc";
+        
+        LOG4CPLUS_INFO(logger, "Saving output:" << ncOutputFilename);
+
+        // Save the history
+        save(ncOutputFilename, wacommAdapter, predictions);
+    }
 }
 
 void AiquamPlusPlus::save(const string &fileName, shared_ptr<WacommAdapter> wacommAdapter, Array::Array3<int> &predictions) {

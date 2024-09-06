@@ -9,6 +9,7 @@ Area::Area(double j, double i) {
 
     _data.j = j;
     _data.i = i;
+    _data.prediction = -1;
 }
 
 Area::Area(area_data data) {
@@ -39,4 +40,12 @@ void Area::addValue(float value) {
 
 std::vector<float>& Area::Values() {
     return _data.values;
+}
+
+int Area::Prediction() const {
+    return _data.prediction;
+}
+
+void Area::Prediction(int prediction) {
+    _data.prediction = prediction;
 }

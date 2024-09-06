@@ -14,6 +14,7 @@ struct area_data {
     double i;
     double j;
     std::vector<float> values;
+    int prediction;
 };
 
 class Area {
@@ -31,6 +32,9 @@ public:
 
     void addValue(float value);
     std::vector<float>& Values();
+
+    int Prediction() const;
+    void Prediction(int prediction);
 private:
     log4cplus::Logger logger;
     area_data _data{};
