@@ -273,7 +273,7 @@ void AiquamPlusPlus::run() {
             std::vector<char> updated_buffer;
             serialize(localAreas->at(idx).data(), updated_buffer);
 
-            size_t offset = thread_displs[ompThreadNum] + idx * serialized_size;
+            size_t offset = idx * serialized_size;
             std::copy(updated_buffer.begin(), updated_buffer.end(), recvbuf.begin() + offset);
             
             LOG4CPLUS_DEBUG(logger, world_rank << ": ompThreadNum: " << ompThreadNum << ": idx: " << idx << ": i:" << pLocalAreas->at(idx).data().i << ", j: " << pLocalAreas->at(idx).data().j << ", prediction: " << predicted_class << std::endl);
