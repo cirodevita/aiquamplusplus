@@ -48,7 +48,7 @@ private:
     void serialize(const area_data& data, std::vector<char>& buffer);
     void deserialize(const std::vector<char>& buffer, area_data& data);
 
-    void save(const string &fileName, shared_ptr<WacommAdapter> wacommAdapter, Array::Array3<int> &predictions);
+    void save(const string &fileName, shared_ptr<WacommAdapter> wacommAdapter, Array::Array3<double> &predictions);
 };
 
 #endif //AIQUAMPLUSPLUS_AIQUAMMPLUSPLUS_HPP
