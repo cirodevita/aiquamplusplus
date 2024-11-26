@@ -68,22 +68,30 @@ void Areas::loadFromJson(const string &fileName, std::shared_ptr<WacommAdapter> 
                 
                 if (feature.contains("geometry")) {
                     auto geometry = feature["geometry"];
-                    if (geometry.contains("type") && geometry["type"] == "MultiPolygon") {
-                        if (geometry.contains("coordinates") && geometry["coordinates"].is_array()) {
-                            auto coordinates = geometry["coordinates"];
-                            for (auto coordinate:coordinates) {
-                                if (coordinate.is_array() && !coordinate.empty()) {
-                                    auto points = coordinate.at(0);
-                                    for (auto point:points) {
-                                        if (point.is_array() && point.size() >= 2) {
-                                            double lon = point.at(0);
-                                            double lat = point.at(1);
+                    if (geometry.contains("type") && geometry.contains("coordinates") && geometry["coordinates"].is_array()) {
+                        auto coordinates = geometry["coordinates"];
+                        
+                        std::vector<std::vector<std::vector<double>>> polygons;
 
-                                            double j, i;
-                                            wacommAdapter->latlon2ji(lat, lon, j, i);
-                                            polygon.push_back({j, i});
-                                        }
-                                    }
+                        if (geometry["type"] == "MultiPolygon") {
+                            for (auto coordinate : coordinates) {
+                                if (coordinate.is_array() && !coordinate.empty()) {
+                                    polygons.push_back(coordinate.at(0).get<std::vector<std::vector<double>>>());
+                                }
+                            }
+                        } else if (geometry["type"] == "Polygon") {
+                            polygons = coordinates.get<std::vector<std::vector<std::vector<double>>>>();
+                        }
+
+                        for (auto points : polygons) {
+                            for (auto point : points) {
+                                if (point.size() >= 2) {
+                                    double lon = point[0];
+                                    double lat = point[1];
+
+                                    double j, i;
+                                    wacommAdapter->latlon2ji(lat, lon, j, i);
+                                    polygon.push_back({j, i});
                                 }
                             }
                         }

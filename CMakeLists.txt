@@ -117,12 +117,11 @@ endif()
 # ONNX Runtime
 set(ONNXRUNTIME_URL_BASE "https://github.com/microsoft/onnxruntime/releases/download")
 set(ONNXRUNTIME_VERSION "1.18.1" CACHE STRING "Version of ONNX Runtime to use")
-set(ONNXRUNTIME_CUDA_VERSION "12" CACHE STRING "CUDA version to use with ONNX Runtime")
 
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
     set(ONNXRUNTIME_PLATFORM "linux-x64")
     if(CUDA_FOUND AND USE_CUDA)
-        set(ONNXRUNTIME_PLATFORM "${ONNXRUNTIME_PLATFORM}-gpu-cuda${ONNXRUNTIME_CUDA_VERSION}")
+        set(ONNXRUNTIME_PLATFORM "${ONNXRUNTIME_PLATFORM}-gpu")
     endif()
 elseif(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
     if(CMAKE_SYSTEM_PROCESSOR STREQUAL "arm64")
