@@ -113,6 +113,7 @@ void AiquamPlusPlus::run() {
             wacommAdapter->process();
 
             if (fileIdx == 0) {
+                wacommAdapter->initializeKDTree();
                 string fileName = config->AreasFile();
 
                 if (fileName.substr(fileName.find_last_of('.') + 1) == "json") {

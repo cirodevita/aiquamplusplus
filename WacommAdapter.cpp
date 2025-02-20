@@ -4,6 +4,11 @@
 
 #include "WacommAdapter.hpp"
 
+using std::chrono::high_resolution_clock;
+using std::chrono::duration_cast;
+using std::chrono::duration;
+using std::chrono::milliseconds;
+
 WacommAdapter::WacommAdapter(std::string &fileName): fileName(fileName) {
     logger = log4cplus::Logger::getInstance(LOG4CPLUS_TEXT("Aiquam"));
 }
@@ -38,10 +43,25 @@ void WacommAdapter::process() {
     varTime.getVar(time());
 
     // Retrieve the variable named "depth"
-    netCDF::NcVar varDepth=dataFile.getVar("depth");
-    size_t dimDepth = varDepth.getDim(0).getSize();
+    netCDF::NcVar varDepth = dataFile.getVar("depth");
+    size_t totalDepth = varDepth.getDim(0).getSize();
+    Array::Array1<double> fullDepth(totalDepth);
+    varDepth.getVar(fullDepth());
+
+    // Determine number of depth levels up to 30 meters
+    size_t dimDepth = 0;
+    for (size_t i = 0; i < totalDepth; i++) {
+        if (fullDepth(i) <= 30.0) {
+            dimDepth++;
+        } else {
+            break;
+        }
+    }
     Array::Array1<double> depth(dimDepth);
-    varDepth.getVar(depth());
+    for (size_t i = 0; i < dimDepth; i++) {
+        depth[i] = fullDepth[i];
+    }
+
 
     // Retrieve the variable named "latitude"
     netCDF::NcVar varLat=dataFile.getVar("latitude");
@@ -60,7 +80,9 @@ void WacommAdapter::process() {
     Array::Array4<double> conc(dimTime,dimDepth,dimLat,dimLon);
     netCDF::NcVarAtt fillValueAtt = varConc.getAtt("_FillValue");
     fillValueAtt.getValues(&_data.fillValue);
-    varConc.getVar(conc());
+    std::vector<size_t> start = {0, 0, 0, 0};
+    std::vector<size_t> count = {dimTime, dimDepth, dimLat, dimLon};
+    varConc.getVar(start, count, conc());
 
     // Retrieve the variable named "sfconc"
     netCDF::NcVar varSfconc=dataFile.getVar("sfconc");
@@ -101,57 +123,88 @@ void WacommAdapter::process() {
     }
 }
 
-void WacommAdapter::latlon2ji(double lat, double lon, double &j, double &i) {
-    int minJ, minI;
-    double d, d1, d2, dd, minD=1e37;
+void WacommAdapter::initializeKDTree() {
+    size_t eta = _data.mask.Nx();
+    size_t xi = _data.mask.Ny();
 
-    double latRad=0.0174533*lat;
-    double lonRad=0.0174533*lon;
+    for (int j = 0; j < eta; j++) {
+        for (int i = 0; i < xi; i++) {
+            cloud.points.push_back({_data.latRad(j), _data.lonRad(i)});
+        }
+    }
+
+    kdTree = new KDTree(2, cloud, nanoflann::KDTreeSingleIndexAdaptorParams(10));
+    kdTree->buildIndex();
+}
+
+
+void WacommAdapter::latlon2ji(double lat, double lon, double &j, double &i) {
+    if (!kdTree) {
+        LOG4CPLUS_ERROR(logger, "KD-Tree not initialized!");
+        return;
+    }
+
+    double query[2] = {0.0174533 * lat, 0.0174533 * lon};
+    size_t nearestIdx;
+    double outDistSqr;
+
+    nanoflann::KNNResultSet<double> resultSet(1);
+    resultSet.init(&nearestIdx, &outDistSqr);
+    kdTree->findNeighbors(resultSet, query, nanoflann::SearchParameters(10));
 
     size_t eta = _data.mask.Nx();
     size_t xi = _data.mask.Ny();
 
-    for (int j=0; j<eta; j++) {
-        for (int i=0; i<xi; i++) {
-            d1=(latRad-_data.latRad(j));
+    if (nearestIdx >= cloud.points.size()) {
+        LOG4CPLUS_ERROR(logger, "KD-Tree index out of bounds: " << nearestIdx);
+        return;
+    }
 
-            d2=(lonRad-_data.lonRad(i));
+    double nearestLat = cloud.points[nearestIdx][0];
+    double nearestLon = cloud.points[nearestIdx][1];
 
-            dd=pow(sin(0.5*d1),2) +
-               pow(sin(0.5*d2),2)*
-               cos(latRad)*
-               cos(_data.latRad(j));
-            d=2.0*atan2(pow(dd,.5),pow(1.0-dd,.5))*6371.0;
-
-            if (d<minD) {
-                minD=d;
-                minJ=j;
-                minI=i;
-            }
+    int minJ = -1, minI = -1;
+    for (size_t idx = 0; idx < eta; ++idx) {
+        if (std::abs(_data.latRad(idx) - nearestLat) < 1e-6) {
+            minJ = idx;
+            break;
+        }
+    }
+    for (size_t idx = 0; idx < xi; ++idx) {
+        if (std::abs(_data.lonRad(idx) - nearestLon) < 1e-6) {
+            minI = idx;
+            break;
         }
     }
 
-    double dLat=latRad-_data.latRad(minJ);
-    double dLon=lonRad-_data.lonRad(minI);
-    int otherJ=minJ+sgn(dLat);
-    int otherI=minI+sgn(dLon);
-    if (dLat!=0) {
-        double aLat = abs(_data.latRad(minJ)-_data.latRad(otherJ));
-        double jF=abs(dLat)/aLat;
-        j=std::min(minJ,otherJ)+jF;
-    } else {
-        j=minJ;
+    if (minJ == -1 || minI == -1) {
+        LOG4CPLUS_ERROR(logger, "Error: Unable to find indices for lat/lon in dataset.");
+        return;
     }
 
-    if (dLon!=0) {
-        double aLon = abs(_data.lonRad(minI)-_data.lonRad(otherI));
-        double iF=abs(dLon)/aLon;
-        i=std::min(minI,otherI)+iF;
+    double dLat = query[0] - _data.latRad(minJ);
+    double dLon = query[1] - _data.lonRad(minI);
+
+    int otherJ = minJ + sgn(dLat);
+    int otherI = minI + sgn(dLon);
+
+    if (dLat != 0 && otherJ >= 0 && otherJ < eta) {
+        double aLat = std::abs(_data.latRad(minJ) - _data.latRad(otherJ));
+        double jF = std::abs(dLat) / aLat;
+        j = std::min(minJ, otherJ) + jF;
     } else {
-        i=minI;
+        j = minJ;
     }
 
-    LOG4CPLUS_DEBUG(logger, "lat, lon: " << _data.lat(j) << ", " << _data.lon(i));
+    if (dLon != 0 && otherI >= 0 && otherI < xi) {
+        double aLon = std::abs(_data.lonRad(minI) - _data.lonRad(otherI));
+        double iF = std::abs(dLon) / aLon;
+        i = std::min(minI, otherI) + iF;
+    } else {
+        i = minI;
+    }
+
+    LOG4CPLUS_DEBUG(logger, "Interpolated j: " << j << ", i: " << i);
 }
 
 // Returns -1 if a < 0 and 1 if a > 0

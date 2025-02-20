@@ -14,6 +14,7 @@
 
 #include "Array.h"
 #include "netcdf"
+#include <nanoflann.hpp>
 
 struct wacomm_data {
     Array::Array1<double> time;
@@ -28,12 +29,32 @@ struct wacomm_data {
     double fillValue;
 };
 
+struct PointCloud {
+    std::vector<std::array<double, 2>> points; // {lat, lon}
+
+    inline size_t kdtree_get_point_count() const { return points.size(); }
+
+    inline double kdtree_get_pt(const size_t idx, const size_t dim) const {
+        return points[idx][dim];
+    }
+
+    template <class BBOX>
+    bool kdtree_get_bbox(BBOX&) const { return false; }
+};
+
+typedef nanoflann::KDTreeSingleIndexAdaptor<
+    nanoflann::L2_Simple_Adaptor<double, PointCloud>,
+    PointCloud,
+    2
+> KDTree;
+
 class WacommAdapter {
     public:
         WacommAdapter(std::string &fileName);
         ~WacommAdapter();
 
         void process();
+        void initializeKDTree();
 
         void latlon2ji(double lat, double lon, double &j, double &i);
 
@@ -56,6 +77,9 @@ class WacommAdapter {
         log4cplus::Logger logger;
         wacomm_data _data;
         std::string &fileName;
+
+        PointCloud cloud;
+        KDTree* kdTree = nullptr;
 
         double sgn(double a);
 };

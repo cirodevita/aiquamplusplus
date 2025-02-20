@@ -245,6 +245,14 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
     set(LIBSHP ${EXTERNAL_INSTALL_LOCATION}/lib/libshp.dylib)
 endif()
 
+include(FetchContent)
+FetchContent_Declare(
+    nanoflann
+    GIT_REPOSITORY https://github.com/jlblancoc/nanoflann.git
+    GIT_TAG master
+)
+FetchContent_MakeAvailable(nanoflann)
+
 add_executable(${PROJECT_NAME} main.cpp Array.h Config.cpp Config.hpp AiquamPlusPlus.cpp AiquamPlusPlus.hpp WacommAdapter.cpp WacommAdapter.hpp Aiquam.cpp Aiquam.hpp Areas.cpp Areas.hpp Area.cpp Area.hpp)
 
 # Explicit the dependencies
@@ -253,6 +261,7 @@ add_dependencies(curl zlib)
 add_dependencies(hdf5 curl)
 add_dependencies(netcdf hdf5)
 add_dependencies(netcdfcxx netcdf)
-add_dependencies(${PROJECT_NAME} log4cplus onnxruntime netcdfcxx shapelib)
+add_dependencies(${PROJECT_NAME} log4cplus onnxruntime netcdfcxx shapelib nanoflann)
 
+target_include_directories(${PROJECT_NAME} PRIVATE ${nanoflann_SOURCE_DIR}/include)
 target_link_libraries(${PROJECT_NAME} ${LIBOMP} ${LIBMPI} ${CUDART_LIBRARY} nlohmann_json::nlohmann_json ${LIBLOG4CPLUS} ${ONNXRUNTIME} ${LIBHDF5} ${LIBNETCDF} ${LIBNETCDFCXX} ${LIBSHP})
