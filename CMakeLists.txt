@@ -265,4 +265,4 @@ add_dependencies(netcdfcxx netcdf)
 add_dependencies(${PROJECT_NAME} log4cplus onnxruntime netcdfcxx shapelib nanoflann)
 
 target_include_directories(${PROJECT_NAME} PRIVATE ${nanoflann_SOURCE_DIR}/include)
-target_link_libraries(${PROJECT_NAME} ${LIBOMP} ${LIBMPI} ${CUDART_LIBRARY} nlohmann_json::nlohmann_json ${LIBLOG4CPLUS} ${ONNXRUNTIME} ${LIBHDF5} ${LIBNETCDF} ${LIBNETCDFCXX} ${LIBSHP} pthread)
+target_link_libraries(${PROJECT_NAME} ${LIBOMP} ${LIBMPI} ${LIBZLIB} ${CUDART_LIBRARY} nlohmann_json::nlohmann_json ${LIBLOG4CPLUS} ${ONNXRUNTIME} ${LIBHDF5} ${LIBNETCDF} ${LIBNETCDFCXX} ${LIBSHP} pthread)
