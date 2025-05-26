@@ -102,7 +102,7 @@ endif()
 
 # log4cplus
 ExternalProject_Add(log4cplus
-    URL https://kumisystems.dl.sourceforge.net/project/log4cplus/log4cplus-stable/2.0.5/log4cplus-2.0.5.tar.gz
+    URL https://github.com/log4cplus/log4cplus/releases/download/REL_2_1_2/log4cplus-2.1.2.tar.gz
     TIMEOUT 360
     BUILD_IN_SOURCE 1
     CONFIGURE_COMMAND ./configure --prefix=${EXTERNAL_INSTALL_LOCATION} CFLAGS=-fPIC CPPFLAGS=-I${EXTERNAL_INSTALL_LOCATION}/include/ LDFLAGS=-L${EXTERNAL_INSTALL_LOCATION}/lib/
@@ -220,6 +220,7 @@ endif()
 # netcdfcxx
 ExternalProject_Add(netcdfcxx
     GIT_REPOSITORY https://github.com/Unidata/netcdf-cxx4.git
+    GIT_TAG main
     TIMEOUT 360
     BUILD_IN_SOURCE 1
     CONFIGURE_COMMAND ${CMAKE_COMMAND} -E chdir <SOURCE_DIR> autoreconf -i && ./configure LIBS=${NETCDFCXXLIBS_PARAMS} CFLAGS=-fPIC CPPFLAGS=-I${EXTERNAL_INSTALL_LOCATION}/include/ LDFLAGS=-L${EXTERNAL_INSTALL_LOCATION}/lib/ --prefix=${EXTERNAL_INSTALL_LOCATION} --enable-shared
