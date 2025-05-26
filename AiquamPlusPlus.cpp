@@ -241,6 +241,13 @@ void AiquamPlusPlus::run() {
         thread_displs[tidx]=thread_counts[0]+areasPerThread*(tidx-1);
     }
 
+#ifdef USE_MPI
+    MPI_Barrier(MPI_COMM_WORLD);
+    double comp_t0 = MPI_Wtime();
+#else
+    auto comp_t0 = std::chrono::high_resolution_clock::now();
+#endif
+
     #pragma omp parallel default(none) private(ompThreadNum) shared(world_rank, thread_counts, thread_displs, pLocalAreas, areasPerThread, num_gpus, serialized_size, recvbuf)
     {
 #ifdef USE_CUDA
@@ -284,6 +291,22 @@ void AiquamPlusPlus::run() {
         #pragma omp barrier
 #endif
     }
+
+#ifdef USE_MPI
+    MPI_Barrier(MPI_COMM_WORLD);
+    double comp_t1 = MPI_Wtime();
+    double comp_elapsed = comp_t1 - comp_t0;
+
+    double comp_max;
+    MPI_Reduce(&comp_elapsed, &comp_max, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
+    if (world_rank == 0) {
+        LOG4CPLUS_INFO(logger, "Compute time: " << comp_max << " s");
+    }
+#else
+    auto comp_t1 = std::chrono::high_resolution_clock::now();
+    double comp_elapsed = std::chrono::duration<double>(comp_t1 - comp_t0).count();
+    LOG4CPLUS_INFO(logger, "Compute time: " << comp_elapsed << " s");
+#endif
 
 #ifdef USE_MPI
     std::vector<int> recv_sizes(world_size);
