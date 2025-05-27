@@ -33,3 +33,7 @@
 
 build/
 checkpoints/
+venv/
+experiments/
+*.png
+*.csv
